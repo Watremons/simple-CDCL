@@ -171,6 +171,7 @@ class Trail:
         for decision_level in self.decision_level_list:
             for node in decision_level.node_list:
                 description += "{0}\t{1}\t{2}\n".format(node.literal, node.reason, node.level)
+        return description
 
 if __name__ == "__main__":
     n = 1
