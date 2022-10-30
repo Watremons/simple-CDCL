@@ -22,7 +22,9 @@ class Literal:
         Method:
             Formatted print string
         """
-        return str(self.variable) if not self.sign else '-{0}'.format(self.variable)
+        return str(self.variable) if not self.sign else '-{0}'.format(
+            self.variable)
+
 
 class Clause:
     '''
@@ -47,10 +49,13 @@ class Clause:
         """
         description = ""
         for index, literal in enumerate(self.literal_list):
-            description += "x{0}".format(literal.variable) if not literal.sign else "-x{0}".format(literal.variable) 
-            if index != len(self.literal_list)-1:
+            description += "x{0}".format(
+                literal.variable) if not literal.sign else "-x{0}".format(
+                    literal.variable)
+            if index != len(self.literal_list) - 1:
                 description += "V"
         return description
+
 
 class Cnf:
     '''
@@ -77,9 +82,11 @@ class Cnf:
         description = ""
         for index, clause in enumerate(self.clause_list):
             description += "({0})".format(clause.__str__())
-            if index != len(self.clause_list)-1:
+            if index != len(self.clause_list) - 1:
                 description += "^"
         return description
+
+
 class Node:
     '''
     Class:
@@ -99,7 +106,7 @@ class Node:
         self.literal = literal
         self.reason = reason
         self.level = level
-    
+
     def __str__(self) -> str:
         """
         Method:
@@ -111,6 +118,7 @@ class Node:
         description += "level: {0}\n".format(self.level)
         return description
 
+
 class DecisionLevel:
     """
     Class:
@@ -121,7 +129,6 @@ class DecisionLevel:
     Method:
         None
     """
-
     def __init__(self, node_list: list[Node], level: int) -> None:
         """
         Method:
@@ -144,6 +151,7 @@ class DecisionLevel:
             description += "\tlevel: {0}\n".format(node.level)
         return description
 
+
 class Trail:
     """
     Class:
@@ -153,7 +161,6 @@ class Trail:
     Method:
         None
     """
-
     def __init__(self, decision_level_list: list) -> None:
         """
         Method:
@@ -170,8 +177,10 @@ class Trail:
         description += "Trail:"
         for decision_level in self.decision_level_list:
             for node in decision_level.node_list:
-                description += "{0}\t{1}\t{2}\n".format(node.literal, node.reason, node.level)
+                description += "{0}\t{1}\t{2}\n".format(
+                    node.literal, node.reason, node.level)
         return description
+
 
 if __name__ == "__main__":
     n = 1
