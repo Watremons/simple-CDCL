@@ -32,7 +32,7 @@ class Clause:
     Method:
         None
     '''
-    def __init__(self, literalList: list) -> None:
+    def __init__(self, literalList: list[Literal]) -> None:
         """
         Method:
             Constructed Funtion
@@ -60,12 +60,13 @@ class Cnf:
     Method:
         None
     '''
-    def __init__(self, clauseList: list) -> None:
+    def __init__(self, clauseList: list[Clause], literalNum: int) -> None:
         """
         Method:
             Constructed Funtion
         """
         self.clauseList = clauseList
+        self.literalNum = literalNum
 
     def __str__(self) -> str:
         """
@@ -120,7 +121,7 @@ class DecisionLevel:
         None
     """
 
-    def __init__(self, nodeList: list, level: int) -> None:
+    def __init__(self, nodeList: list[Node], level: int) -> None:
         """
         Method:
             Constructed Function
