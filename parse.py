@@ -1,7 +1,7 @@
 from models import Literal, Clause, Cnf
 
 
-def parser(file_path: str) -> Cnf:
+def cnf_parse(file_path: str) -> Cnf:
     """
     Method:
         parse the cnf file to Cnf
