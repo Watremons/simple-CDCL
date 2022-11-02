@@ -3,20 +3,20 @@ class Literal:
     Class:
         Definition of literal
     Attributes:
-        variable: a num of variable whose value is from 1 to 2n. If value is from n+1 to 2n, that means this variable is a "Not"
+        variable: a num of variable whose value is from 1 to n
         sign: -1 when the variable is "Not"
-        literal: a num of variable whose value is from 1 to n
+        literal2n: a num of variable whose value is from 1 to 2n. If value is from n+1 to 2n, that means this variable is a "Not"
     Method:
         None
     '''
-    def __init__(self, variable: int, sign: int, literal: int) -> None:
+    def __init__(self, variable: int, sign: int, literal2n: int) -> None:
         """
         Method:
             Constructed Funtion
         """
         self.variable = variable
         self.sign = sign
-        self.literal = literal
+        self.literal2n = literal2n
 
     def __str__(self) -> str:
         """

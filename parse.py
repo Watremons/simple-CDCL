@@ -42,15 +42,15 @@ def cnf_parse(file_path: str) -> Cnf:
                 # Handle a "NOT" literal
                 variable = int(raw_literal.lstrip('-'))
                 sign = True
-                literal = variable + literal_num
+                literal2n = variable + literal_num
             else:
                 # Handle a literal
                 variable = int(raw_literal)
                 sign = False
-                literal = variable
+                literal2n = variable
             if variable == 0:
                 break
-            literal_list.append(Literal(variable=variable, sign=sign, literal=literal))
+            literal_list.append(Literal(variable=variable, sign=sign, literal2n=literal2n))
         clause_list.append(Clause(literal_list=literal_list))
     return Cnf(clause_list=clause_list, literal_num=literal_num)
 
