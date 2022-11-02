@@ -48,11 +48,13 @@ def cnf_parse(file_path: str) -> Cnf:
                 variable = int(raw_literal)
                 sign = False
                 literal = variable
-                
+            if variable == 0:
+                break
             literal_list.append(Literal(variable=variable, sign=sign, literal=literal))
         clause_list.append(Clause(literal_list=literal_list))
     return Cnf(clause_list=clause_list, literal_num=literal_num)
 
+
 if __name__ == "__main__":
-    cnf = parser("./raw/test.cnf")
+    cnf = cnf_parse("./raw/test.cnf")
     print('cnf', cnf)
