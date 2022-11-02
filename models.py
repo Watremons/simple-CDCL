@@ -5,7 +5,7 @@ class Literal:
     Attributes:
         variable: a num of variable whose value is from 1 to n
         sign: -1 when the variable is "Not"
-        literal2n: a num of variable whose value is from 1 to 2n. If value is from n+1 to 2n, that means this variable is a "Not"
+        literal: a num of variable whose value is from 1 to 2n. If value is from n+1 to 2n, that means this variable is a "Not"
     Method:
         None
     '''
@@ -64,6 +64,7 @@ class Cnf:
         Definition of Cnf
     Attributes:
         clause_list: a list of clauses denoted to a conjunctive normal form of them
+        variable_num: the number of variables
     Method:
         None
     '''
@@ -73,7 +74,7 @@ class Cnf:
             Constructed Funtion
         """
         self.clause_list = clause_list
-        self.literal_num = literal_num
+        self.variable_num = variable_num
 
     def __str__(self) -> str:
         """
@@ -93,18 +94,20 @@ class Node:
     Class:
         Node of implication graph
     Attributes:
-        literal: literal in node, which means this literal is assigned True
+        variable: variable in node
+        value: the value of the decided variable
         reason: the reason why this literal is assigned True, which is either decided by user or decided by other clause
         level: the decision level of this node
     Method:
         None
     '''
-    def __init__(self, literal, reason, level: int) -> None:
+    def __init__(self, variable, reason, level: int) -> None:
         """
         Method:
             Constructed Funtion
         """
-        self.literal = literal
+        self.variable = variable
+        self.value = value
         self.reason = reason
         self.level = level
 
@@ -114,7 +117,8 @@ class Node:
             Formatted print string
         """
         description = ""
-        description += "literal: {0}\n".format(self.literal)
+        description += "variable: {0}\n".format(self.variable)
+        description += "value: {0}\n".format(self.value)
         description += "reason: {0}\n".format(self.reason)
         description += "level: {0}\n".format(self.level)
         return description
@@ -147,7 +151,8 @@ class DecisionLevel:
         description += "Decision Level {0}\n".format(self.level)
         for index, node in enumerate(self.node_list):
             description += "\tNode {0}:\n".format(index)
-            description += "\tliteral: {0}\n".format(node.literal)
+            description += "\tvariable: {0}\n".format(node.variable)
+            description += "\tvalue: {0}\n".format(node.value)
             description += "\treason: {0}\n".format(node.reason)
             description += "\tlevel: {0}\n".format(node.level)
         return description
