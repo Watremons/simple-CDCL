@@ -3,8 +3,9 @@ class Literal:
     Class:
         Definition of literal
     Attributes:
-        variable: a num of variable whose value is from 0 to 2n-1. If value is from n to 2n-1, that means this variable is a "Not"
+        variable: a num of variable whose value is from 1 to 2n. If value is from n+1 to 2n, that means this variable is a "Not"
         sign: -1 when the variable is "Not"
+        literal: a num of variable whose value is from 1 to n
     Method:
         None
     '''
