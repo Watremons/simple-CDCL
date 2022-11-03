@@ -5,7 +5,7 @@ class Literal:
     Attributes:
         variable: a num of variable whose value is from 0 to 2n. If value is from n+1 to 2n, that means this variable is a "Not"
         sign: -1 when the variable is "Not"
-        literal: a num of variable whose value is from 1 to n
+        literal: a num of variable whose value is from 1 to 2n. If value is from n+1 to 2n, that means this variable is a "Not"
     Method:
         None
     '''
@@ -95,7 +95,8 @@ class Node:
     Class:
         Node of implication graph
     Attributes:
-        literal: literal in node, which means this literal is assigned True
+        variable: variable in node
+        value: the value of the decided variable
         reason: the reason why this literal is assigned True, which is either decided by user or decided by other clause
         level: the decision level of this node
     Method:
@@ -106,7 +107,7 @@ class Node:
         Method:
             Constructed Funtion
         """
-        self.variable=variable
+        self.variable = variable
         self.value = value
         self.reason = reason
         self.level = level
