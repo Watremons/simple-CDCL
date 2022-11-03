@@ -3,34 +3,33 @@ class Literal:
     Class:
         Definition of literal
     Attributes:
-        variable: a num of variable whose value is from 1 to n
+        variable: a num of variable whose value is from 0 to 2n. If value is from n+1 to 2n, that means this variable is a "Not"
         sign: -1 when the variable is "Not"
-        literal2n: a num of variable whose value is from 1 to 2n. If value is from n+1 to 2n, that means this variable is a "Not"
+        literal: a num of variable whose value is from 1 to n
     Method:
         None
     '''
-    def __init__(self, variable: int, sign: int, literal2n: int) -> None:
+    def __init__(self, variable: int, sign: int, literal: int) -> None:
         """
         Method:
             Constructed Funtion
         """
         self.variable = variable
         self.sign = sign
-        self.literal2n = literal2n
+        self.literal = literal
 
     def __str__(self) -> str:
         """
         Method:
             Formatted print string
         """
-        return str(self.variable) if not self.sign else '-{0}'.format(
-            self.variable)
+        return str(self.variable) if not self.sign else '-{0}'.format(self.variable)
 
 
 class Clause:
     '''
     Class:
-        Definition of literal
+        Definition of clause
     Attributes:
         literal_list: a list of literals denoted to a disjunctive normal form of them
     Method:
@@ -64,16 +63,19 @@ class Cnf:
         Definition of Cnf
     Attributes:
         clause_list: a list of clauses denoted to a conjunctive normal form of them
+        clause_num= the number of cluases
+        variable_num: the number of variables
     Method:
         None
     '''
-    def __init__(self, clause_list: list[Clause], literal_num: int) -> None:
+    def __init__(self, clause_list: list[Clause], clause_num: int, variable_num: int) -> None:
         """
         Method:
             Constructed Funtion
         """
         self.clause_list = clause_list
-        self.literal_num = literal_num
+        self.clause_num = clause_num
+        self.variable_num = variable_num
 
     def __str__(self) -> str:
         """
@@ -99,12 +101,13 @@ class Node:
     Method:
         None
     '''
-    def __init__(self, literal, reason, level: int) -> None:
+    def __init__(self, variable,value, reason, level: int) -> None:
         """
         Method:
             Constructed Funtion
         """
-        self.literal = literal
+        self.variable=variable
+        self.value = value
         self.reason = reason
         self.level = level
 
@@ -114,7 +117,8 @@ class Node:
             Formatted print string
         """
         description = ""
-        description += "literal: {0}\n".format(self.literal)
+        description += "variable: {0}\n".format(self.variable)
+        description += "value: {0}\n".format(self.value)
         description += "reason: {0}\n".format(self.reason)
         description += "level: {0}\n".format(self.level)
         return description
@@ -147,7 +151,7 @@ class DecisionLevel:
         description += "Decision Level {0}\n".format(self.level)
         for index, node in enumerate(self.node_list):
             description += "\tNode {0}:\n".format(index)
-            description += "\tliteral: {0}\n".format(node.literal)
+            description += "\tvalue: {0}\n".format(node.value)
             description += "\treason: {0}\n".format(node.reason)
             description += "\tlevel: {0}\n".format(node.level)
         return description
