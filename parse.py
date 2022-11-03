@@ -20,18 +20,15 @@ def cnf_parse(file_path: str) -> Cnf:
         f.close()
 
     # Get the first line after comment, starts with p cnf
-    literal_num = 0
-    clause_num = 0
     params = file_content[0].split(' ')
-    assert params[0] == 'p' and params[
-        1] == "cnf", "InputError: Context need to start with 'p' and 'cnf'"
+    assert params[0] == 'p' and params[1] == "cnf", "InputError: Context need to start with 'p' and 'cnf'"
 
-    literal_num = int(params[2])
+    variable_num = int(params[2])
     clause_num = int(params[3])
 
     assert clause_num == (
-        len(file_content) -
-        1), "InputError: The lines of context is not equal to nclause"
+            len(file_content) -
+            1), "InputError: The lines of context is not equal to clause"
     # Read every line as a clause
     clause_list = []
     for line_index in range(1, clause_num):
@@ -42,17 +39,16 @@ def cnf_parse(file_path: str) -> Cnf:
                 # Handle a "NOT" literal
                 variable = int(raw_literal.lstrip('-'))
                 sign = True
-                literal2n = variable + literal_num
+                literal = variable + variable_num
             else:
                 # Handle a literal
                 variable = int(raw_literal)
                 sign = False
-                literal2n = variable
-            if variable == 0:
-                break
-            literal_list.append(Literal(variable=variable, sign=sign, literal2n=literal2n))
+                literal = variable
+
+            literal_list.append(Literal(variable=variable, sign=sign, literal=literal))
         clause_list.append(Clause(literal_list=literal_list))
-    return Cnf(clause_list=clause_list, literal_num=literal_num)
+    return Cnf(clause_list=clause_list, clause_num=clause_num, variable_num=variable_num)
 
 
 if __name__ == "__main__":
