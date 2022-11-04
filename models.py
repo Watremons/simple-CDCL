@@ -3,9 +3,9 @@ class Literal:
     Class:
         Definition of literal
     Attributes:
-        variable: a num of variable whose value is from 0 to 2n. If value is from n+1 to 2n, that means this variable is a "Not"
-        sign: -1 when the variable is "Not"
-        literal: a num of variable whose value is from 1 to 2n. If value is from n+1 to 2n, that means this variable is a "Not"
+        variable: variables ranging from 0 to 2n
+        sign: sign=1 when the literal is Ture, sign=0 when the literal is False
+        literal: literals ranging from 1 to 2n, with negative literals ranging form n+1 to 2n
     Method:
         None
     '''
@@ -63,7 +63,7 @@ class Cnf:
         Definition of Cnf
     Attributes:
         clause_list: a list of clauses denoted to a conjunctive normal form of them
-        clause_num= the number of cluases
+        clause_num= the number of clauses
         variable_num: the number of variables
     Method:
         None
@@ -82,7 +82,7 @@ class Cnf:
         Method:
             Formatted print string
         """
-        description = ""
+        description = "clause_num={0},variable_num={1}".format(self.clause_num,self.variable_num)
         for index, clause in enumerate(self.clause_list):
             description += "({0})".format(clause.__str__())
             if index != len(self.clause_list) - 1:
@@ -97,7 +97,7 @@ class Node:
     Attributes:
         variable: variable in node
         value: the value of the decided variable
-        reason: the reason why this literal is assigned True, which is either decided by user or decided by other clause
+        reason: the reason why this variable is assigned, which is either assigned by decide or assigned by other clauses
         level: the decision level of this node
     Method:
         None
@@ -130,8 +130,8 @@ class DecisionLevel:
     Class:
         Definition of Decision Level, which is created when decide the value of a literal
     Attributes:
-        node_list: the list of node which are included in this decision level
-        level: the level number of a decision level
+        node_list: the list of node included in this decision level
+        level: the decision level
     Method:
         None
     """

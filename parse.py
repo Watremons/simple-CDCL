@@ -15,24 +15,20 @@ def cnf_parse(file_path: str) -> Cnf:
                 break
             elif line.startswith('c'):
                 pass
+            elif line.startswith('p'):
+                # Get the first line after comment, starts with p cnf
+                line0=line.split(' ')
+                variable_num = int(line0[2])
+                clause_num = int(line0[3])
             else:
                 file_content.append(line.rstrip('\n'))
         f.close()
 
-    # Get the first line after comment, starts with p cnf
-    params = file_content[0].split(' ')
-    assert params[0] == 'p' and params[1] == "cnf", "InputError: Context need to start with 'p' and 'cnf'"
-
-    variable_num = int(params[2])
-    clause_num = int(params[3])
-
-    assert clause_num == (
-            len(file_content) -
-            1), "InputError: The lines of context is not equal to clause"
     # Read every line as a clause
     clause_list = []
-    for line_index in range(1, clause_num):
+    for line_index in range(clause_num):
         raw_literal_list = file_content[line_index].split(' ')
+        raw_literal_list=raw_literal_list[:-1]
         literal_list = []
         for raw_literal in raw_literal_list:
             if raw_literal.startswith('-'):

@@ -25,7 +25,7 @@ class SatSolver:
         self.now_decision_level = 0;
         for clause in cnf.clause_list:
             for literal in clause.literal_list:
-                if literal.variable not in self.assignments and (literal.variable-cnf.literal_num) not in self.assignments:
+                if literal.variable not in self.assignments and (literal.variable-cnf.variable_num) not in self.assignments:
                     # literal or (not literal) are both not in assignments
                     self.assignments[literal.variable] = None
 
