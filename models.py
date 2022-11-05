@@ -7,7 +7,7 @@ class Literal:
         Definition of literal
     Attributes:
         variable: variables ranging from 0 to 2n
-        sign: sign=1 when the literal is Ture, sign=0 when the literal is False
+        sign: sign=1 when the literal is True, sign=0 when the literal is False
         literal: literals ranging from 1 to 2n, with negative literals ranging form n+1 to 2n
     Method:
         None
@@ -26,7 +26,21 @@ class Literal:
         Method:
             Formatted print string
         """
-        return str(self.variable) if not self.sign else '-{0}'.format(self.variable)
+        return str(self.variable) if self.sign else '-{0}'.format(self.variable)
+
+    def __eq__(self, __o: object) -> bool:
+        """
+        Method:
+            define the equal of two Literal instance
+        """
+        return self.literal == __o.literal
+
+    def __hash__(self) -> bool:
+        """
+        Method:
+            define the hash of two Literal instance
+        """
+        return hash(self.literal)
 
 
 class Clause:
@@ -53,7 +67,7 @@ class Clause:
         description = ""
         for index, literal in enumerate(self.literal_list):
             description += "x{0}".format(
-                literal.variable) if not literal.sign else "-x{0}".format(
+                literal.variable) if literal.sign else "-x{0}".format(
                     literal.variable)
             if index != len(self.literal_list) - 1:
                 description += "V"
@@ -98,14 +112,15 @@ class Node:
     Class:
         Node of implication graph
     Attributes:
-        variable: variable in node(could be None when node is a conflict node)
+        variable: variable in node(could be None when node is a conflict)
         value: the value of the decided variable
         reason: the reason why this variable is assigned, which is either assigned by decide or assigned by other clauses
         level: the decision level of this node
+        index: the index of node in trail
     Method:
         None
     '''
-    def __init__(self, variable: Union(int, None), value: bool, reason: Union[None, list[int]], level: int) -> None:
+    def __init__(self, variable: Union[int, None], value: bool, reason: Union[None, list[int]], level: int, index: int) -> None:
         """
         Method:
             Constructed Funtion
@@ -114,6 +129,7 @@ class Node:
         self.value = value
         self.reason = reason
         self.level = level
+        self.index = index
 
     def __str__(self) -> str:
         """
@@ -125,40 +141,41 @@ class Node:
         description += "value: {0}\n".format(self.value)
         description += "reason: {0}\n".format(self.reason)
         description += "level: {0}\n".format(self.level)
+        description += "index: {0}\n".format(self.index)
         return description
 
 
-class DecisionLevel:
-    """
-    Class:
-        Definition of Decision Level, which is created when decide the value of a literal
-    Attributes:
-        node_list: the list of node included in this decision level
-        level: the decision level
-    Method:
-        None
-    """
-    def __init__(self, node_list: list[Node], level: int) -> None:
-        """
-        Method:
-            Constructed Function
-        """
-        self.node_list = node_list
-        self.level = level
+# class DecisionLevel:
+#     """
+#     Class:
+#         Definition of Decision Level, which is created when decide the value of a literal
+#     Attributes:
+#         node_list: the list of node included in this decision level
+#         level: the decision level
+#     Method:
+#         None
+#     """
+#     def __init__(self, node_list: list[Node], level: int) -> None:
+#         """
+#         Method:
+#             Constructed Function
+#         """
+#         self.node_list = node_list
+#         self.level = level
 
-    def __str__(self) -> str:
-        """
-        Method:
-            Formatted print string
-        """
-        description = ""
-        description += "Decision Level {0}\n".format(self.level)
-        for index, node in enumerate(self.node_list):
-            description += "\tNode {0}:\n".format(index)
-            description += "\tvalue: {0}\n".format(node.value)
-            description += "\treason: {0}\n".format(node.reason)
-            description += "\tlevel: {0}\n".format(node.level)
-        return description
+#     def __str__(self) -> str:
+#         """
+#         Method:
+#             Formatted print string
+#         """
+#         description = ""
+#         description += "Decision Level {0}\n".format(self.level)
+#         for index, node in enumerate(self.node_list):
+#             description += "\tNode {0}:\n".format(index)
+#             description += "\tvalue: {0}\n".format(node.value)
+#             description += "\treason: {0}\n".format(node.reason)
+#             description += "\tlevel: {0}\n".format(node.level)
+#         return description
 
 
 class Trail:
@@ -166,16 +183,16 @@ class Trail:
     Class:
         Definition of Trail, which is stored several decision levels linearly
     Attributes:
-        decision_level_list: a list of decision level which are included in a trail
+        node_list: a list of decision level which are included in a trail
     Method:
         None
     """
-    def __init__(self, decision_level_list: list[DecisionLevel]) -> None:
+    def __init__(self, node_list: list[Node]) -> None:
         """
         Method:
             Constructed Funcion
         """
-        self.decision_level_list = decision_level_list
+        self.node_list = node_list
 
     def __str__(self) -> str:
         """
@@ -184,10 +201,9 @@ class Trail:
         """
         description = ""
         description += "Trail:"
-        for decision_level in self.decision_level_list:
-            for node in decision_level.node_list:
-                description += "{0}\t{1}\t{2}\n".format(
-                    node.literal, node.reason, node.level)
+        for node in self.node_list:
+            description += "{0}\t{1}\t{2}\n".format(
+                node.literal, node.reason, node.level)
         return description
 
 
