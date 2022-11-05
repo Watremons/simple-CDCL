@@ -82,7 +82,7 @@ class Cnf:
         Method:
             Formatted print string
         """
-        description = "clause_num={0},variable_num={1}".format(self.clause_num, self.variable_num)
+        description = "clause_num={0},variable_num={1}\n".format(self.clause_num, self.variable_num)
         for index, clause in enumerate(self.clause_list):
             description += "({0})".format(clause.__str__())
             if index != len(self.clause_list) - 1:
