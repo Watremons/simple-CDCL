@@ -17,9 +17,9 @@ def cnf_parse(file_path: str) -> Cnf:
                 pass
             elif line.startswith('p'):
                 # Get the first line after comment, starts with p cnf
-                line0=line.split(' ')
-                variable_num = int(line0[2])
-                clause_num = int(line0[3])
+                word_list = line.split(' ')
+                variable_num = int(word_list[2])
+                clause_num = int(word_list[3])
             else:
                 file_content.append(line.rstrip('\n'))
         f.close()
@@ -28,7 +28,7 @@ def cnf_parse(file_path: str) -> Cnf:
     clause_list = []
     for line_index in range(clause_num):
         raw_literal_list = file_content[line_index].split(' ')
-        raw_literal_list=raw_literal_list[:-1]
+        raw_literal_list = raw_literal_list[:-1]
         literal_list = []
         for raw_literal in raw_literal_list:
             if raw_literal.startswith('-'):
