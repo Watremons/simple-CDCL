@@ -1,3 +1,6 @@
+from typing import Union
+
+
 class Literal:
     '''
     Class:
@@ -95,14 +98,14 @@ class Node:
     Class:
         Node of implication graph
     Attributes:
-        variable: variable in node
+        variable: variable in node(could be None when node is a conflict node)
         value: the value of the decided variable
         reason: the reason why this variable is assigned, which is either assigned by decide or assigned by other clauses
         level: the decision level of this node
     Method:
         None
     '''
-    def __init__(self, variable, value, reason, level: int) -> None:
+    def __init__(self, variable: Union(int, None), value: bool, reason: Union[None, list[int]], level: int) -> None:
         """
         Method:
             Constructed Funtion
@@ -167,7 +170,7 @@ class Trail:
     Method:
         None
     """
-    def __init__(self, decision_level_list: list) -> None:
+    def __init__(self, decision_level_list: list[DecisionLevel]) -> None:
         """
         Method:
             Constructed Funcion
