@@ -37,12 +37,12 @@ def cnf_parse(file_path: str) -> Cnf:
             if raw_literal.startswith('-'):
                 # Handle a "NOT" literal
                 variable = int(raw_literal.lstrip('-'))
-                sign = True
+                sign = False
                 literal = variable + variable_num
             else:
                 # Handle a literal
                 variable = int(raw_literal)
-                sign = False
+                sign = True
                 literal = variable
 
             literal_list.append(Literal(variable=variable, sign=sign, literal=literal))
