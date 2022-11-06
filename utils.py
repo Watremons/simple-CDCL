@@ -50,16 +50,21 @@ def to_clause(node: Node, variable_num: int) -> Clause:
         reason_literal_list.append(Literal(variable=variable, sign=sign, literal=reason_literal))
     return Clause(literal_list=reason_literal_list)
 
-def resolve_clause(conflict_clause: Clause, resolve_clause: Clause, variable: int) -> Clause:
+
+def resolute_clause(conflict_clause: Clause, resolve_clause: Clause, variable: int, variable_num: int) -> Clause:
     """
     Method:
-        Resolve two clanse and return a result clause
+        resolute two clanse and return a result clause
     Return:
         clause: the result clause
     """
+    # merge two clause and remove duplicates
     result_clause_literal_set = set(conflict_clause.literal_list + resolve_clause.literal_list)
+    # Delete the target variable
+    result_clause_literal_set.remove(variable, 1, variable)
+    result_clause_literal_set.remove(variable, 0, variable + variable_num)
 
-    result_clause_literal_set.remove()
+    return Clause(literal_list=list(result_clause_literal_set))
 
 
 if __name__ == "__main__":
@@ -77,5 +82,9 @@ if __name__ == "__main__":
         Literal(5, 1, 5),
         Literal(6, 1, 6)
     ]
-    for literal in list(set(list1+list2)):
+    all_set = set(list1+list2)
+    for literal in all_set:
+        print(literal)
+    all_set.remove(Literal(2, 1, 2))
+    for literal in all_set:
         print(literal)
