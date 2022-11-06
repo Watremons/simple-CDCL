@@ -31,14 +31,14 @@ class Literal:
     def __eq__(self, __o: object) -> bool:
         """
         Method:
-            define the equal of two Literal instance
+            Define the equal of two Literal instance
         """
         return self.literal == __o.literal
 
     def __hash__(self) -> bool:
         """
         Method:
-            define the hash of two Literal instance
+            Define the hash of two Literal instance
         """
         return hash(self.literal)
 
