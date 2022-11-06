@@ -6,7 +6,7 @@ class Literal:
     Class:
         Definition of literal
     Attributes:
-        variable: variables ranging from 0 to 2n
+        variable: variables ranging from 1 to 2n
         sign: sign=1 when the literal is True, sign=0 when the literal is False
         literal: literals ranging from 1 to 2n, with negative literals ranging form n+1 to 2n
     Method:
@@ -58,6 +58,7 @@ class Clause:
             Constructed Funtion
         """
         self.literal_list = literal_list
+        self.value=None
 
     def __str__(self) -> str:
         """
@@ -93,6 +94,7 @@ class Cnf:
         self.clause_list = clause_list
         self.clause_num = clause_num
         self.variable_num = variable_num
+        self.answer=""
 
     def __str__(self) -> str:
         """
@@ -183,7 +185,7 @@ class Trail:
     Class:
         Definition of Trail, which is stored several decision levels linearly
     Attributes:
-        node_list: a list of decision level which are included in a trail
+        nodel_list: a list of decision level which are included in a trail
     Method:
         None
     """

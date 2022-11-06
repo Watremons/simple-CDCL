@@ -7,8 +7,8 @@ def to_variable(literal: int, variable_num: int) -> tuple[int, int]:
     Method:
         Trans literal to variable
     Return:
-        variable: variable num
-        sign: variable sign
+        variable
+        the sign of the variable
     """
     if literal <= variable_num:
         return literal, 1
@@ -16,12 +16,12 @@ def to_variable(literal: int, variable_num: int) -> tuple[int, int]:
         return literal - variable_num, 0
 
 
-def to_literal(variable: int, sign: int, variable_num: int) -> tuple[int, int]:
+def to_literal(variable: int, sign: int, variable_num: int) -> int:
     """
     Method:
         Trans variable to literal
     Return:
-        literal: literal
+        literal
     """
     if sign:
         return variable
@@ -34,7 +34,7 @@ def to_clause(node: Node, variable_num: int) -> Clause:
     Method:
         Trans node to clause
     Return:
-        clause: a clause transform from input node
+        a clause transform from input node
     """
     reason_literal_list = []
     if node.variable is not None:
@@ -54,9 +54,9 @@ def to_clause(node: Node, variable_num: int) -> Clause:
 def resolute_clause(conflict_clause: Clause, resolve_clause: Clause, variable: int, variable_num: int) -> Clause:
     """
     Method:
-        resolute two clanse and return a result clause
+        resolute two clauses and return a result clause
     Return:
-        clause: the result clause
+        the result clause
     """
     # merge two clause and remove duplicates
     result_clause_literal_set = set(conflict_clause.literal_list + resolve_clause.literal_list)

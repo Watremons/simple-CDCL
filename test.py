@@ -2,7 +2,7 @@ from models import Node, Trail
 from models import Clause, Literal
 
 
-def conflict_analyze(variable_num: int, trail: Trail) -> tuple[Clause, int]:
+def conflict_analyze(trail: Trail, variable_num: int) -> tuple[Clause, int]:
     """
     Method:
         analyze the trail when cnf have a false clause
@@ -28,11 +28,11 @@ def conflict_analyze(variable_num: int, trail: Trail) -> tuple[Clause, int]:
                     implication_graph[start_vertex]["outgoing"].append(node.variable)
     # for idx, node in enumerate(implication_graph):
     #     print(idx, node)
-    return Clause(literal_list=[Literal(variable=1, sign=1, literal=1)]), 0
+    print( Clause(literal_list=[Literal(variable=1, sign=1, literal=1)]), 0)
 
 
 if __name__ == "__main__":
-    trail = Trail(decision_level_list=[
+    trail = Trail(decision_node_list=[
         Node(variable=1, value=True, reason=None, level=1, index=0),
         Node(variable=2, value=False, reason=[13], level=1, index=1),
         Node(variable=3, value=True, reason=[13], level=1, index=2),

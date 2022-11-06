@@ -1,4 +1,4 @@
-# Stardard lib
+# Standard lib
 from copy import deepcopy
 
 # Customized lib
@@ -25,14 +25,12 @@ class SatSolver:
         """
         self.cnf = cnf
         self.trail = Trail(node_list=[])
-        # Use assignments to record the variable to assigned node
         self.variable_to_node = dict()
         self.now_decision_level = 0
-        for clause in cnf.clause_list:
-            for literal in clause.literal_list:
-                if literal.variable not in self.assignments and (literal.variable-cnf.variable_num) not in self.assignments:
-                    # literal or (not literal) are both not in assignments
-                    self.assignments[literal.variable] = None
+        # Use assignments to record the variable to assigned node
+        self.assignments = dict()
+        for i in cnf.variable_num:
+            self.assignments[i] = None
 
     def is_study_clause(self, conflict_clause: Clause, conflict_level: int) -> tuple[bool, Node]:
         """
@@ -58,9 +56,68 @@ class SatSolver:
 
         return count == 1, max_index_node
 
+    def get_value(self, variable) :
+        # get the value of a variable
+        if variable in self.assignments:
+            return self.assignments[variable]
+        else:
+            return None
+
+    def find_unit_clause(self) -> tuple[Literal, Clause]:
+        for clause in self.cnf.clause_list:
+            len_clause = self.cnf.clause_num
+            #the number of unassigned literals
+            num_undefined = 0
+            #the number of literals assigned False
+            num_false = 0
+            #the unassigned literal
+            undefined_literal = None
+            for literal in clause.literal_list:
+                value = self.get_value(literal.variable)
+                if value == False:
+                    num_false += 1
+                elif value == None:
+                    undefined_literal = literal
+                    num_undefined += 1
+            if num_undefined == 1 and num_false == len_clause - 1:
+                return undefined_literal, clause
+        return None, None
+
     def unit_propagate(self):
-        # Do with self.cnf
-        pass
+        # the literal used to do unit propagate
+        literal = None
+        while True:
+            literal, clause = self.find_unit_clause()
+            if literal == None:
+                #there is no unit clause
+                break
+            self.set_value(literal)
+            self.append_node_to_current_level(literal, clause)
+        self.update_clause_value()
+
+    #TODO ：在痕中添加结点
+    def append_node_to_current_level(self,  Literal, clause):
+        node=Node()
+        self.trail.node_list.append(Node)
+
+
+    def update_clause_value(self):  # 更新子句的值
+        for clause in self.cnf.clause_list:
+            len_clause = len(clause.literal_list)
+            #the number of Ture literal
+            num_true = 0
+            #the number of False literal
+            num_false = 0
+            for literal in clause.literal_list:
+                r = self.get_value(literal.variable)
+                if r == True:
+                    num_true += 1
+                elif r == False:
+                    num_false += 1
+            if num_true >= 1:  # 至少有一个文字取真
+                clause.value = True  # 则子句取真
+            elif num_false == len_clause:  # 所有文字取假（冲突）
+                clause.value = False  # 则子句取假
 
     def conflict_analyze(self) -> tuple[Clause, int]:
         """
@@ -114,6 +171,10 @@ class SatSolver:
         # 4.Return
         return study_clause, backtrack_decision_level
 
+    def set_value(self, literal):
+        if l in self.assignments:
+            self.assignments[l] = True if literal.sign else False
+
     def backtrack(self, back_level: int) -> None:
         """
         Method:
@@ -139,7 +200,7 @@ class SatSolver:
         # Do with self.cnf
         pass
 
-    def unknown_variable_exists(self):
+    def unassigned_variable_exists(self):
         pass
 
     def detect_false_clause(self):
@@ -162,23 +223,27 @@ class SatSolver:
             # do "conflict analysis" process
             if self.detect_false_clause():
                 if self.now_decision_level == 0:
-                    return False
+                    self.answer="UNSAT"
+                    return
                 new_clause, back_level = self.conflict_analyze()
                 self.cnf.append_clause(new_clause)
                 # do BACKTRACK process
                 self.backtrack(back_level)
             else:
-                if not self.unknown_variable_exists():
-                    return True
+                if not self.unassigned_variable_exists():
+                    self.answer="SAT"
+                    return
                 # do DECIDE process
                 self.make_new_decision_level()
-                new_unknown_literal = self.get_new_unknown_literal()
-                self.cnf = self.cnf.append(new_unknown_literal)
+                new_unassigned_literal = self.get_new_unassigned_literal()
+                # TODO 有点疑惑
+                self.cnf = self.cnf.append(new_unassigned_literal)
 
 
 if __name__ == "__main__":
     cnf = cnf_parse("./raw/test.cnf")
-    raw_cnf = deepcopy(cnf)
-    solver = SatSolver(cnf)
+    print(cnf)
+  #  raw_cnf = deepcopy(cnf)
+  #  solver = SatSolver(cnf)
     # solver.solve()
     # solver.print_result(raw_cnf=raw_cnf)
