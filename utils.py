@@ -51,7 +51,7 @@ def to_clause(node: Node, variable_num: int) -> Clause:
     return Clause(literal_list=reason_literal_list)
 
 
-def resolute_clause(conflict_clause: Clause, resolve_clause: Clause, variable: int, variable_num: int) -> Clause:
+def resolute_clause(conflict_clause: Clause, to_resolute_clause: Clause, variable: int, variable_num: int) -> Clause:
     """
     Method:
         resolute two clanse and return a result clause
@@ -59,10 +59,10 @@ def resolute_clause(conflict_clause: Clause, resolve_clause: Clause, variable: i
         clause: the result clause
     """
     # merge two clause and remove duplicates
-    result_clause_literal_set = set(conflict_clause.literal_list + resolve_clause.literal_list)
+    result_clause_literal_set = set(conflict_clause.literal_list + to_resolute_clause.literal_list)
     # Delete the target variable
-    result_clause_literal_set.remove(variable, 1, variable)
-    result_clause_literal_set.remove(variable, 0, variable + variable_num)
+    result_clause_literal_set.remove(Literal(variable, 1, variable))
+    result_clause_literal_set.remove(Literal(variable, 0, variable + variable_num))
 
     return Clause(literal_list=list(result_clause_literal_set))
 
