@@ -6,6 +6,9 @@ def to_variable(literal: int, variable_num: int) -> tuple[int, int]:
     """
     Method:
         Trans literal to variable
+    Params:
+        literal: a num denoted the literal
+        variable_num: the variable num in the cnf
     Return:
         variable: variable num
         sign: variable sign
@@ -16,10 +19,14 @@ def to_variable(literal: int, variable_num: int) -> tuple[int, int]:
         return literal - variable_num, 0
 
 
-def to_literal(variable: int, sign: int, variable_num: int) -> tuple[int, int]:
+def to_literal(variable: int, sign: int, variable_num: int) -> int:
     """
     Method:
         Trans variable to literal
+    Params:
+        variable: variable num
+        sign: variable sign
+        variable_num: the variable num in the cnf
     Return:
         literal: literal
     """
@@ -32,7 +39,10 @@ def to_literal(variable: int, sign: int, variable_num: int) -> tuple[int, int]:
 def to_clause(node: Node, variable_num: int) -> Clause:
     """
     Method:
-        Trans node to clause
+        Transform a node to a clause whose literal_list consists of the variable combined value and the reason of node
+    Params:
+        node: the node to be transformed
+        variable_num: the variable num in the cnf
     Return:
         clause: a clause transform from input node
     """
@@ -55,6 +65,12 @@ def resolute_clause(conflict_clause: Clause, to_resolute_clause: Clause, variabl
     """
     Method:
         resolute two clanse and return a result clause
+        for the clause A [1, 2, 4] and clause B[-1, 2, 3], the function resolute the two clause and return [2, 3, 4]
+    Params:
+        conflict_clause: clause A
+        to_resolute_clause: clause B
+        variable: the variable to be resolute in both A and B
+        variable_num: the variable num in the cnf
     Return:
         clause: the result clause
     """
@@ -63,7 +79,7 @@ def resolute_clause(conflict_clause: Clause, to_resolute_clause: Clause, variabl
     # Delete the target variable
     result_clause_literal_set.remove(Literal(variable, 1, variable))
     result_clause_literal_set.remove(Literal(variable, 0, variable + variable_num))
-
+    # Return the clause
     return Clause(literal_list=list(result_clause_literal_set))
 
 
