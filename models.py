@@ -145,39 +145,6 @@ class Node:
         return description
 
 
-# class DecisionLevel:
-#     """
-#     Class:
-#         Definition of Decision Level, which is created when decide the value of a literal
-#     Attributes:
-#         node_list: the list of node included in this decision level
-#         level: the decision level
-#     Method:
-#         None
-#     """
-#     def __init__(self, node_list: list[Node], level: int) -> None:
-#         """
-#         Method:
-#             Constructed Function
-#         """
-#         self.node_list = node_list
-#         self.level = level
-
-#     def __str__(self) -> str:
-#         """
-#         Method:
-#             Formatted print string
-#         """
-#         description = ""
-#         description += "Decision Level {0}\n".format(self.level)
-#         for index, node in enumerate(self.node_list):
-#             description += "\tNode {0}:\n".format(index)
-#             description += "\tvalue: {0}\n".format(node.value)
-#             description += "\treason: {0}\n".format(node.reason)
-#             description += "\tlevel: {0}\n".format(node.level)
-#         return description
-
-
 class Trail:
     """
     Class:
