@@ -15,8 +15,11 @@ class SatSolver:
     Attributes:
         cnf: a Cnf class which store the origin Cnf
         trail: a literal sequence with result
+        variable_to_node: a dict stored the mapping from variable to node
+        assignments: record the variable to assigned node
     Methods:
         solve: solve the SAT Problem by CDCL algorithm
+        is_study_clause: judge whether a conflict_clause is a study clause and return a literal in conflict_level
     """
     def __init__(self, cnf: Cnf):
         """
@@ -25,7 +28,6 @@ class SatSolver:
         """
         self.cnf = cnf
         self.trail = Trail(node_list=[])
-        # Use assignments to record the variable to assigned node
         self.variable_to_node = dict()
         self.assignments = dict()
         self.now_decision_level = 0
@@ -39,8 +41,13 @@ class SatSolver:
         """
         Method:
             judge whether a conflict_clause is a study clause and return a literal in conflict_level
+            a study clause has only one variable at conflict level
+        Params:
+            conflict_clause: the conflict clause to be judged
+            conflict_level: the decision level which conflict occurred
         Return:
             flag: whether a conflict_clause is a study clause
+            Node: the first node at confilct level whose variable is included in conflict clause
         """
         count = 0
         max_index = -1
@@ -118,7 +125,10 @@ class SatSolver:
         """
         Method:
             Use the cnf which adds the study clause and backtrack decision level to do backtrack
-            1.Remove all nodes whose level is greater than back_level from trail
+            1.Set now decision level to the backtrack level
+            2.Remove all nodes whose level is greater than back_level from trail
+        Params:
+            back_level: the decision level that the solver need to backtrack to
         """
         while True:
             if len(self.trail.node_list) == 0:
