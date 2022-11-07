@@ -26,7 +26,11 @@ def cnf_parse(file_path: str) -> Cnf:
         f.close()
 
     assert variable_num is not None and clause_num is not None, "InputError: Context need to start with 'p' and 'cnf'"
-    assert clause_num == (len(file_content)), "InputError: The lines of context is not equal to clause"
+    assert clause_num == (
+        len(file_content)
+    ), "InputError: The lines of context <int:{file_content}> is not equal to clause <int:{clause_num}>".format(
+        file_content=len(file_content), clause_num=clause_num
+    )
     # Read every line as a clause
     clause_list = []
     for line_index in range(clause_num):
@@ -45,9 +49,12 @@ def cnf_parse(file_path: str) -> Cnf:
                 sign = True
                 literal = variable
 
-            literal_list.append(Literal(variable=variable, sign=sign, literal=literal))
+            literal_list.append(
+                Literal(variable=variable, sign=sign, literal=literal))
         clause_list.append(Clause(literal_list=literal_list))
-    return Cnf(clause_list=clause_list, clause_num=clause_num, variable_num=variable_num)
+    return Cnf(clause_list=clause_list,
+               clause_num=clause_num,
+               variable_num=variable_num)
 
 
 if __name__ == "__main__":
