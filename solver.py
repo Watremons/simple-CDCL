@@ -130,6 +130,7 @@ class SatSolver:
         Params:
             back_level: the decision level that the solver need to backtrack to
         """
+        self.now_decision_level = back_level
         while True:
             if len(self.trail.node_list) == 0:
                 # break if no node remain
