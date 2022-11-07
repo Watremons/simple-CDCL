@@ -4,16 +4,18 @@ from models import Literal, Clause, Cnf
 def cnf_parse(file_path: str) -> Cnf:
     """
     Method:
-        parse the cnf file to Cnf
+        Parse the .cnf file to a Cnf instance
+    Params:
+        file_path: the file path of .cnf file
     """
     file_content = []
     with open(file_path) as f:
         while True:
             line = f.readline()
-            # Skip the comment lines which starts with 'c' and delete '\n' at the end
             if not line:
                 break
             elif line.startswith('c'):
+                # Skip the comment lines which starts with 'c' and delete '\n' at the end
                 pass
             elif line.startswith('p'):
                 # Get the first line after comment, starts with p cnf
@@ -39,16 +41,15 @@ def cnf_parse(file_path: str) -> Cnf:
         literal_list = []
         for raw_literal in raw_literal_list:
             if raw_literal.startswith('-'):
-                # Handle a "NOT" literal
+                # Handle a negative literal
                 variable = int(raw_literal.lstrip('-'))
                 sign = False
                 literal = variable + variable_num
             else:
-                # Handle a literal
+                # Handle a positive literal
                 variable = int(raw_literal)
                 sign = True
                 literal = variable
-
             literal_list.append(
                 Literal(variable=variable, sign=sign, literal=literal))
         clause_list.append(Clause(literal_list=literal_list))
