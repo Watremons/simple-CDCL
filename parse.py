@@ -20,7 +20,8 @@ def cnf_parse(file_path: str) -> Cnf:
             elif line.startswith('p'):
                 # Get the first line after comment, starts with p cnf
                 word_list = line.split(' ')
-                assert word_list[1] == "cnf", "InputError: Context need to start with 'p' and 'cnf'"
+                assert word_list[
+                    1] == "cnf", "InputError: Context need to start with 'p' and 'cnf'"
                 variable_num = int(word_list[2])
                 clause_num = int(word_list[3])
             else:
@@ -31,8 +32,7 @@ def cnf_parse(file_path: str) -> Cnf:
     assert clause_num == (
         len(file_content)
     ), "InputError: The lines of context <int:{file_content}> is not equal to clause <int:{clause_num}>".format(
-        file_content=len(file_content), clause_num=clause_num
-    )
+        file_content=len(file_content), clause_num=clause_num)
     # Read every line as a clause
     clause_list = []
     for line_index in range(clause_num):
@@ -50,13 +50,15 @@ def cnf_parse(file_path: str) -> Cnf:
                 variable = int(raw_literal)
                 sign = True
                 literal = variable
-            literal_list.append(Literal(variable=variable, sign=sign, literal=literal))
+            literal_list.append(
+                Literal(variable=variable, sign=sign, literal=literal))
         clause_list.append(Clause(literal_list=literal_list))
-    return Cnf(clause_list=clause_list, clause_num=clause_num, variable_num=variable_num)
-
+    return Cnf(clause_list=clause_list,
+               clause_num=clause_num,
+               variable_num=variable_num)
 
 
 if __name__ == "__main__":
     cnf = cnf_parse("./raw/test4.cnf")
     print('cnf', cnf)
-    #print(cnf.clause_list[1])
+    # print(cnf.clause_list[1])
