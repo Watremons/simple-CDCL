@@ -141,11 +141,11 @@ class Node:
             Formatted print string
         """
         description = ""
-        description += "variable:  {0}\t".format(self.variable)
+        description += "variable: {0}\t".format(self.variable)
         description += "value:  {0}\t".format(self.value)
-        description += "reason:  {0}\t".format(self.reason)
-        description += "level:  {0}\t".format(self.level)
-        description += "index:  {0}\n".format(self.index)
+        description += "reason:{0}\t".format(self.reason)
+        description += "level: {0}\t".format(self.level)
+        description += "index: {0}\n".format(self.index)
         return description
 
 class Trail:

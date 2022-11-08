@@ -294,10 +294,11 @@ class SatSolver:
                 new_unassigned_literal = self.decide()
                 if new_unassigned_literal:
                     self.set_value(new_unassigned_literal)
+                    self.append_node_to_current_level(new_unassigned_literal, None)
 
 
 if __name__ == "__main__":
-    cnf = cnf_parse("./raw/test3.cnf")
+    cnf = cnf_parse("./raw/test.cnf")
     #print(cnf)
     raw_cnf = deepcopy(cnf)
     solver = SatSolver(cnf)
