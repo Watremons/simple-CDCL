@@ -1,3 +1,4 @@
+c test to do unit propagate
 p cnf 3 3
 1 0
 1 -2 0

@@ -57,6 +57,6 @@ def cnf_parse(file_path: str) -> Cnf:
 
 
 if __name__ == "__main__":
-    cnf = cnf_parse("./raw/test.cnf")
+    cnf = cnf_parse("./raw/test4.cnf")
     print('cnf', cnf)
-    print(cnf.clause_list[1])
+    #print(cnf.clause_list[1])
