@@ -33,9 +33,9 @@ class Literal:
         Method:
             Define the equal of two Literal instance
         """
-        if object==None:
-            return False
-        #return self.literal == __o.literal
+        # if object == None:
+        #     return False
+        return self.literal == __o.literal
 
     def __hash__(self) -> bool:
         """
@@ -54,13 +54,13 @@ class Clause:
     Method:
         None
     '''
-    def __init__(self, literal_list: list[Literal] ) -> None:
+    def __init__(self, literal_list: list[Literal]) -> None:
         """
         Method:
             Constructed Funtion
         """
         self.literal_list = literal_list
-        self.value=None
+        self.value = None
 
     def __str__(self) -> str:
         """
@@ -88,7 +88,8 @@ class Cnf:
     Method:
         None
     '''
-    def __init__(self, clause_list: list[Clause], clause_num: int, variable_num: int) -> None:
+    def __init__(self, clause_list: list[Clause], clause_num: int,
+                 variable_num: int) -> None:
         """
         Method:
             Constructed Funtion
@@ -96,14 +97,15 @@ class Cnf:
         self.clause_list = clause_list
         self.clause_num = clause_num
         self.variable_num = variable_num
-        self.answer=""
+        self.answer = ""
 
     def __str__(self) -> str:
         """
         Method:
             Formatted print string
         """
-        description = "clause_num={0},variable_num={1}\n".format(self.clause_num, self.variable_num)
+        description = "clause_num={0},variable_num={1}\n".format(
+            self.clause_num, self.variable_num)
         for index, clause in enumerate(self.clause_list):
             description += "({0})".format(clause.__str__())
             if index != len(self.clause_list) - 1:
@@ -124,7 +126,8 @@ class Node:
     Method:
         None
     '''
-    def __init__(self, variable: Union[int, None], value: bool, reason: Union[None, list[int]], level: int, index: int) -> None:
+    def __init__(self, variable: Union[int, None], value: bool,
+                 reason: Union[None, list[int]], level: int, index: int) -> None:
         """
         Method:
             Constructed Funtion
@@ -147,6 +150,7 @@ class Node:
         description += "level: {0}\t".format(self.level)
         description += "index: {0}\n".format(self.index)
         return description
+
 
 class Trail:
     """
