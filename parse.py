@@ -46,7 +46,7 @@ def cnf_parse(file_path: str) -> Cnf:
                 literal = variable
 
             literal_list.append(Literal(variable=variable, sign=sign, literal=literal))
-        clause_list.append(Clause(literal_list=literal_list))
+        clause_list.append(Clause(literal_list=literal_list,literal_num=len(literal_list)))
     return Cnf(clause_list=clause_list, clause_num=clause_num, variable_num=variable_num)
 
 

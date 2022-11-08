@@ -29,7 +29,8 @@ class SatSolver:
         self.now_decision_level = 0
         # Use assignments to record the variable to assigned node
         self.assignments = dict()
-        for i in cnf.variable_num:
+        self.answer=None
+        for i in range(1,cnf.variable_num+1):
             self.assignments[i] = None
 
     def is_study_clause(self, conflict_clause: Clause, conflict_level: int) -> tuple[bool, Node]:
@@ -65,7 +66,7 @@ class SatSolver:
 
     def find_unit_clause(self) -> tuple[Literal, Clause]:
         for clause in self.cnf.clause_list:
-            len_clause = self.cnf.clause_num
+            len_clause = clause.literal_num
             #the number of unassigned literals
             num_undefined = 0
             #the number of literals assigned False
@@ -79,7 +80,9 @@ class SatSolver:
                 elif value == None:
                     undefined_literal = literal
                     num_undefined += 1
-            if num_undefined == 1 and num_false == len_clause - 1:
+            print("@@",num_undefined,num_false,len_clause)  #TODO
+            if num_undefined == 1:
+                print(undefined_literal, clause)
                 return undefined_literal, clause
         return None, None
 
@@ -88,18 +91,20 @@ class SatSolver:
         literal = None
         while True:
             literal, clause = self.find_unit_clause()
+            print("存在单位子句，对应的文字是",literal,"对应的子句是",clause )
             if literal == None:
                 #there is no unit clause
                 break
+            #print(literal.variable)
             self.set_value(literal)
             self.append_node_to_current_level(literal, clause)
         self.update_clause_value()
 
     #TODO ：在痕中添加结点
     def append_node_to_current_level(self,  Literal, clause):
-        node=Node()
-        self.trail.node_list.append(Node)
-
+        #node=Node()
+        #self.trail.node_list.append(Node)
+        pass
 
     def update_clause_value(self):  # 更新子句的值
         for clause in self.cnf.clause_list:
@@ -172,8 +177,9 @@ class SatSolver:
         return study_clause, backtrack_decision_level
 
     def set_value(self, literal):
-        if l in self.assignments:
-            self.assignments[l] = True if literal.sign else False
+        if literal.variable in self.assignments :
+            self.assignments[literal.variable]= literal.sign
+            print("设置"+str(literal.variable)+"为"+str(literal.sign))
 
     def backtrack(self, back_level: int) -> None:
         """
@@ -196,30 +202,37 @@ class SatSolver:
     def make_new_decision_level(self):
         pass
 
-    def get_new_unknown_literal(self):
+    def get_new_unassigned_literal(self):
         # Do with self.cnf
         pass
 
     def unassigned_variable_exists(self):
-        pass
+        for i in range(1,cnf.variable_num+1):
+            if self.assignments[i] == None:
+                return True
+        return False
+
 
     def detect_false_clause(self):
         # TODO: Add the conflict clause to trail if detecting a false clause
         pass
 
-    def print_result(self, raw_cnf: Cnf):
+    def print_result(self, raw_cnf):
         """
         Method:
             Print the result
-        Params:
-            raw_cnf: the origin input cnf
         """
-        pass
+        print(raw_cnf)
+        print(self.answer)
+        for i in range(1,cnf.variable_num+1):
+            print( "{"+str(i)+":"+str(self.assignments[i])+"}",end=' ')
 
     def solve(self):
         while True:
             # do BCP process
             self.unit_propagate()
+            ###print("1")
+            #break
             # do "conflict analysis" process
             if self.detect_false_clause():
                 if self.now_decision_level == 0:
@@ -234,16 +247,18 @@ class SatSolver:
                     self.answer="SAT"
                     return
                 # do DECIDE process
-                self.make_new_decision_level()
+                self.now_decision_level += 1
+                #self.make_new_decision_level()
                 new_unassigned_literal = self.get_new_unassigned_literal()
-                # TODO 有点疑惑
-                self.cnf = self.cnf.append(new_unassigned_literal)
+                if new_unassigned_literal:
+                    self.set_value(new_unassigned_literal)
+                ###print("!!!"+self.assignments[1])
 
 
 if __name__ == "__main__":
-    cnf = cnf_parse("./raw/test.cnf")
-    print(cnf)
-  #  raw_cnf = deepcopy(cnf)
-  #  solver = SatSolver(cnf)
-    # solver.solve()
-    # solver.print_result(raw_cnf=raw_cnf)
+    cnf = cnf_parse("./raw/test3.cnf")
+    #print(cnf)
+    raw_cnf = deepcopy(cnf)
+    solver = SatSolver(cnf)
+    solver.solve()
+    solver.print_result(raw_cnf=raw_cnf)

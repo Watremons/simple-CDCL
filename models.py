@@ -33,7 +33,9 @@ class Literal:
         Method:
             Define the equal of two Literal instance
         """
-        return self.literal == __o.literal
+        if object==None:
+            return False
+        #return self.literal == __o.literal
 
     def __hash__(self) -> bool:
         """
@@ -52,12 +54,13 @@ class Clause:
     Method:
         None
     '''
-    def __init__(self, literal_list: list[Literal]) -> None:
+    def __init__(self, literal_list: list[Literal], literal_num) -> None:
         """
         Method:
             Constructed Funtion
         """
         self.literal_list = literal_list
+        self.literal_num = literal_num
         self.value=None
 
     def __str__(self) -> str:
@@ -145,40 +148,6 @@ class Node:
         description += "level: {0}\n".format(self.level)
         description += "index: {0}\n".format(self.index)
         return description
-
-
-# class DecisionLevel:
-#     """
-#     Class:
-#         Definition of Decision Level, which is created when decide the value of a literal
-#     Attributes:
-#         node_list: the list of node included in this decision level
-#         level: the decision level
-#     Method:
-#         None
-#     """
-#     def __init__(self, node_list: list[Node], level: int) -> None:
-#         """
-#         Method:
-#             Constructed Function
-#         """
-#         self.node_list = node_list
-#         self.level = level
-
-#     def __str__(self) -> str:
-#         """
-#         Method:
-#             Formatted print string
-#         """
-#         description = ""
-#         description += "Decision Level {0}\n".format(self.level)
-#         for index, node in enumerate(self.node_list):
-#             description += "\tNode {0}:\n".format(index)
-#             description += "\tvalue: {0}\n".format(node.value)
-#             description += "\treason: {0}\n".format(node.reason)
-#             description += "\tlevel: {0}\n".format(node.level)
-#         return description
-
 
 class Trail:
     """
