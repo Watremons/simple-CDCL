@@ -5,7 +5,7 @@ from copy import deepcopy
 from models import Literal, Clause, Cnf
 from models import Node, Trail
 from parse import cnf_parse
-from utils import resolute_clause, to_clause, to_literal, to_variable
+from utils import resolute_clause, to_clause, to_variable
 
 
 class SatSolver:
@@ -15,8 +15,11 @@ class SatSolver:
     Attributes:
         cnf: a Cnf class which store the origin Cnf
         trail: a literal sequence with result
+        variable_to_node: a dict stored the mapping from variable to node
+        assignments: record the variable to assigned node
     Methods:
         solve: solve the SAT Problem by CDCL algorithm
+        is_study_clause: judge whether a conflict_clause is a study clause and return a literal in conflict_level
     """
     def __init__(self, cnf: Cnf):
         """
@@ -26,6 +29,7 @@ class SatSolver:
         self.cnf = cnf
         self.trail = Trail(node_list=[])
         self.variable_to_node = dict()
+        self.assignments = dict()
         self.now_decision_level = 0
         # Use assignments to record the variable to assigned node
         self.assignments = dict()
@@ -37,17 +41,20 @@ class SatSolver:
         """
         Method:
             judge whether a conflict_clause is a study clause and return a literal in conflict_level
+            a study clause has only one variable at conflict level
+        Params:
+            conflict_clause: the conflict clause to be judged
+            conflict_level: the decision level which conflict occurred
         Return:
             flag: whether a conflict_clause is a study clause
+            Node: the first node at confilct level whose variable is included in conflict clause
         """
-        conflict_literal_list = conflict_clause.reason + [to_literal(conflict_clause.variable)]
-
         count = 0
         max_index = -1
         max_index_node = None
-        for conflict_literal in conflict_literal_list:
-            conflict_variable = to_variable(conflict_literal)
-            variable_node = self.variable_to_node(conflict_variable)
+        for conflict_literal in conflict_clause.literal_list:
+            conflict_variable = conflict_literal.variable
+            variable_node = self.variable_to_node[conflict_variable]
             if variable_node.level == conflict_level:
                 count += 1
                 # TODO: set the index
@@ -80,9 +87,7 @@ class SatSolver:
                 elif value == None:
                     undefined_literal = literal
                     num_undefined += 1
-            print("@@",num_undefined,num_false,len_clause)  #TODO
             if num_undefined == 1:
-                print(undefined_literal, clause)
                 return undefined_literal, clause
         return None, None
 
@@ -91,11 +96,9 @@ class SatSolver:
         literal = None
         while True:
             literal, clause = self.find_unit_clause()
-            print("存在单位子句，对应的文字是",literal,"对应的子句是",clause )
             if literal == None:
                 #there is no unit clause
                 break
-            #print(literal.variable)
             self.set_value(literal)
             self.append_node_to_current_level(literal, clause)
         self.update_clause_value()
@@ -154,12 +157,13 @@ class SatSolver:
             flag, latest_conflict_level_node = self.is_study_clause(conflict_clause, last_decision_level)
             if flag:
                 break
-            to_resolute_clause = to_clause(latest_conflict_level_node)
+            to_resolute_clause = to_clause(latest_conflict_level_node, self.cnf.variable_num)
 
             conflict_clause = resolute_clause(
                 conflict_clause=conflict_clause,
-                resolute_clause=to_resolute_clause,
-                variable=latest_conflict_level_node.variable
+                to_resolute_clause=to_resolute_clause,
+                variable=latest_conflict_level_node.variable,
+                variable_num=self.cnf.variable_num
             )
 
         study_clause = conflict_clause
@@ -179,14 +183,17 @@ class SatSolver:
     def set_value(self, literal):
         if literal.variable in self.assignments :
             self.assignments[literal.variable]= literal.sign
-            print("设置"+str(literal.variable)+"为"+str(literal.sign))
 
     def backtrack(self, back_level: int) -> None:
         """
         Method:
             Use the cnf which adds the study clause and backtrack decision level to do backtrack
-            1.Remove all nodes whose level is greater than back_level from trail
+            1.Set now decision level to the backtrack level
+            2.Remove all nodes whose level is greater than back_level from trail
+        Params:
+            back_level: the decision level that the solver need to backtrack to
         """
+        self.now_decision_level = back_level
         while True:
             if len(self.trail.node_list) == 0:
                 # break if no node remain
@@ -196,15 +203,16 @@ class SatSolver:
                 # break
                 break
             else:
-                self.variable_to_node.pop(last_node.variable)
+                if last_node.variable is not None:
+                    self.variable_to_node.pop(last_node.variable)
                 del last_node
 
     def make_new_decision_level(self):
         pass
 
-    def get_new_unassigned_literal(self):
+   # def get_new_unassigned_literal(self):
         # Do with self.cnf
-        pass
+       # pass
 
     def unassigned_variable_exists(self):
         for i in range(1,cnf.variable_num+1):
@@ -231,15 +239,13 @@ class SatSolver:
         while True:
             # do BCP process
             self.unit_propagate()
-            ###print("1")
-            #break
             # do "conflict analysis" process
             if self.detect_false_clause():
                 if self.now_decision_level == 0:
                     self.answer="UNSAT"
                     return
                 new_clause, back_level = self.conflict_analyze()
-                self.cnf.append_clause(new_clause)
+                self.cnf.clause_list.append(new_clause)
                 # do BACKTRACK process
                 self.backtrack(back_level)
             else:
@@ -248,11 +254,9 @@ class SatSolver:
                     return
                 # do DECIDE process
                 self.now_decision_level += 1
-                #self.make_new_decision_level()
                 new_unassigned_literal = self.get_new_unassigned_literal()
                 if new_unassigned_literal:
                     self.set_value(new_unassigned_literal)
-                ###print("!!!"+self.assignments[1])
 
 
 if __name__ == "__main__":

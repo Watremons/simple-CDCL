@@ -1,38 +1,12 @@
 from models import Node, Trail
-from models import Clause, Literal
-
-
-def conflict_analyze(trail: Trail, variable_num: int) -> tuple[Clause, int]:
-    """
-    Method:
-        analyze the trail when cnf have a false clause
-        1.Construct the implication graph according to trail
-        2.Search UIPs on the graph and get the first one (the first one means the closest UIP to the conflict node)
-        3.Divide the nodes to two parts which one has the node that can reach from UIP and another has the rest
-        4.Do UIP cut on the edge between the two parts and get the study clause
-        5.Record the backtrack decision level
-        6.Return
-    Return:
-        study_clause: the clause which study from the conflict
-        backtrack_decision_level: the decision level which need to backtrack
-    """
-    # Do with self.cnf
-    # 1.Construct the implication graph according to trail
-    implication_graph = [{"value": True, "outgoing": []} for _ in range(variable_num+1)]
-    for decision_level in trail.decision_level_list:
-        for node in decision_level.node_list:
-            if node.variable is not None:
-                implication_graph[node.variable]["value"] = node.value
-            if node.reason is not None:
-                for start_vertex in node.reason:
-                    implication_graph[start_vertex]["outgoing"].append(node.variable)
-    # for idx, node in enumerate(implication_graph):
-    #     print(idx, node)
-    print( Clause(literal_list=[Literal(variable=1, sign=1, literal=1)]), 0)
-
+from parse import cnf_parse
+from solver import SatSolver
 
 if __name__ == "__main__":
-    trail = Trail(decision_node_list=[
+    now_decision_level = 2
+    variable_to_node = dict()
+
+    trail = Trail(node_list=[
         Node(variable=1, value=True, reason=None, level=1, index=0),
         Node(variable=2, value=False, reason=[13], level=1, index=1),
         Node(variable=3, value=True, reason=[13], level=1, index=2),
@@ -48,4 +22,58 @@ if __name__ == "__main__":
         Node(variable=None, value=True, reason=[23, 12], level=2, index=12),
     ])
 
-    conflict_analyze(trail=trail, variable_num=12)
+    node_list = []
+    new_node = Node(variable=1, value=True, reason=None, level=1, index=0)
+    node_list.append(new_node)
+    variable_to_node[1] = new_node
+    new_node = Node(variable=2, value=False, reason=[13], level=1, index=1)
+    node_list.append(new_node)
+    variable_to_node[2] = new_node
+    new_node = Node(variable=3, value=True, reason=[13], level=1, index=2)
+    node_list.append(new_node)
+    variable_to_node[3] = new_node
+    new_node = Node(variable=4, value=False, reason=[15], level=1, index=3)
+    node_list.append(new_node)
+    variable_to_node[4] = new_node
+    new_node = Node(variable=5, value=True, reason=[2, 4], level=1, index=4)
+    node_list.append(new_node)
+    variable_to_node[5] = new_node
+    new_node = Node(variable=6, value=False, reason=None, level=2, index=5)
+    node_list.append(new_node)
+    variable_to_node[6] = new_node
+    new_node = Node(variable=7, value=False, reason=[17, 6], level=2, index=6)
+    node_list.append(new_node)
+    variable_to_node[7] = new_node
+    new_node = Node(variable=8, value=True, reason=[2, 7], level=2, index=7)
+    node_list.append(new_node)
+    variable_to_node[8] = new_node
+    new_node = Node(variable=9, value=False, reason=[20], level=2, index=8)
+    node_list.append(new_node)
+    variable_to_node[9] = new_node
+    new_node = Node(variable=10, value=True, reason=[20], level=2, index=9)
+    node_list.append(new_node)
+    variable_to_node[10] = new_node
+    new_node = Node(variable=11, value=True, reason=[9, 22], level=2, index=10)
+    node_list.append(new_node)
+    variable_to_node[11] = new_node
+    new_node = Node(variable=12, value=False, reason=[22], level=2, index=11)
+    node_list.append(new_node)
+    variable_to_node[12] = new_node
+    new_node = Node(variable=None, value=True, reason=[23, 12], level=2, index=12)
+    node_list.append(new_node)
+
+    cnf = cnf_parse("./raw/test2.cnf")
+    solver = SatSolver(cnf)
+    solver.now_decision_level = now_decision_level
+    solver.trail = trail
+    solver.variable_to_node = variable_to_node
+    study_clause, back_level = solver.conflict_analyze()
+    print("study_clause", study_clause)
+    print("back_level", back_level)
+    solver.cnf.clause_list.append(study_clause)
+    # do BACKTRACK process
+    solver.backtrack(back_level)
+    for node in solver.trail.node_list:
+        print(node)
+    for key, node in solver.variable_to_node.items():
+        print(key, node)
