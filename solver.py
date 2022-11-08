@@ -26,6 +26,7 @@ class SatSolver:
         Method:
             Constructed Function
         """
+        self.node_index = 0
         self.cnf = cnf
         self.trail = Trail(node_list=[])
         self.variable_to_node = dict()
@@ -65,15 +66,23 @@ class SatSolver:
         return count == 1, max_index_node
 
     def get_value(self, variable) :
-        # get the value of a variable
+        """
+        Method:
+            Get the value of a variable
+        """
         if variable in self.assignments:
             return self.assignments[variable]
         else:
             return None
 
     def find_unit_clause(self) -> tuple[Literal, Clause]:
-        for clause in self.cnf.clause_list:
-            len_clause = clause.literal_num
+        """
+        Method:
+            check if there is unit clause in cnf
+        """
+        for index in range(len(self.cnf.clause_list)):
+            clause=self.cnf.clause_list[index]
+            len_clause = len(clause.literal_list)
             #the number of unassigned literals
             num_undefined = 0
             #the number of literals assigned False
@@ -88,28 +97,37 @@ class SatSolver:
                     undefined_literal = literal
                     num_undefined += 1
             if num_undefined == 1:
-                return undefined_literal, clause
+                return undefined_literal, index
         return None, None
 
     def unit_propagate(self):
+        """
+        Method:
+            do unit propagate
+        """
         # the literal used to do unit propagate
         literal = None
         while True:
-            literal, clause = self.find_unit_clause()
+            literal, clause_index = self.find_unit_clause()
             if literal == None:
                 #there is no unit clause
                 break
             self.set_value(literal)
-            self.append_node_to_current_level(literal, clause)
+            self.append_node_to_current_level(literal, clause_index)
         self.update_clause_value()
 
-    #TODO ：在痕中添加结点
-    def append_node_to_current_level(self,  Literal, clause):
-        #node=Node()
-        #self.trail.node_list.append(Node)
+    #TODO ：在迹中添加结点
+    def append_node_to_current_level(self, literal, clause_index):
+        node=Node(variable=literal.variable, value=self.get_value(literal.variable), reason=clause_index, level=self.now_decision_level, index=self.node_index)
+        self.node_index+=1
+        self.trail.node_list.append(node)
         pass
 
     def update_clause_value(self):  # 更新子句的值
+        """
+        Method:
+            Update the value of each clause
+        """
         for clause in self.cnf.clause_list:
             len_clause = len(clause.literal_list)
             #the number of Ture literal
@@ -149,7 +167,7 @@ class SatSolver:
         for reason_literal in conflict_node.reason:
             variable, sign = to_variable(reason_literal, self.cnf.variable_num)
             reason_literal_list.append(Literal(variable=variable, sign=sign, literal=reason_literal))
-        conflict_clause = Clause(literal_list=reason_literal_list)
+        conflict_clause = Clause(literal_list=reason_literal_list,literal_num=len(reason_literal_list))
 
         # 2.Check the conflict clause has only one literal at conflict level
         # if not, use the clause at conflict level to resolute excess literals
@@ -181,6 +199,10 @@ class SatSolver:
         return study_clause, backtrack_decision_level
 
     def set_value(self, literal):
+        """
+        Method:
+            Set the value of literal
+        """
         if literal.variable in self.assignments :
             self.assignments[literal.variable]= literal.sign
 
@@ -210,11 +232,24 @@ class SatSolver:
     def make_new_decision_level(self):
         pass
 
-   # def get_new_unassigned_literal(self):
-        # Do with self.cnf
-       # pass
+    def decide(self):
+        """
+        Method:
+            Select a variable to assign value
+        """
+        # Sequential traversal the cnf to find an unassigned literal
+        for clause in self.cnf.clause_list:
+            for literal in clause.literal_list:
+                value=self.get_value(literal.variable)
+                if value == None:
+                    return literal
+        return None
 
     def unassigned_variable_exists(self):
+        """
+        Method:
+            Check if there is still unassigned variable existing
+        """
         for i in range(1,cnf.variable_num+1):
             if self.assignments[i] == None:
                 return True
@@ -233,7 +268,9 @@ class SatSolver:
         print(raw_cnf)
         print(self.answer)
         for i in range(1,cnf.variable_num+1):
-            print( "{"+str(i)+":"+str(self.assignments[i])+"}",end=' ')
+            #print( "{"+str(i)+":"+str(self.assignments[i])+"}",end=' ')
+            print( f'{i}:{self.assignments[i]}',end=' ')
+        print()
 
     def solve(self):
         while True:
@@ -254,7 +291,7 @@ class SatSolver:
                     return
                 # do DECIDE process
                 self.now_decision_level += 1
-                new_unassigned_literal = self.get_new_unassigned_literal()
+                new_unassigned_literal = self.decide()
                 if new_unassigned_literal:
                     self.set_value(new_unassigned_literal)
 
@@ -266,3 +303,4 @@ if __name__ == "__main__":
     solver = SatSolver(cnf)
     solver.solve()
     solver.print_result(raw_cnf=raw_cnf)
+    print(solver.trail)

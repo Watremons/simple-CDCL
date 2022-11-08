@@ -54,13 +54,12 @@ class Clause:
     Method:
         None
     '''
-    def __init__(self, literal_list: list[Literal], literal_num) -> None:
+    def __init__(self, literal_list: list[Literal] ) -> None:
         """
         Method:
             Constructed Funtion
         """
         self.literal_list = literal_list
-        self.literal_num = literal_num
         self.value=None
 
     def __str__(self) -> str:
@@ -142,11 +141,11 @@ class Node:
             Formatted print string
         """
         description = ""
-        description += "variable: {0}\n".format(self.variable)
-        description += "value: {0}\n".format(self.value)
-        description += "reason: {0}\n".format(self.reason)
-        description += "level: {0}\n".format(self.level)
-        description += "index: {0}\n".format(self.index)
+        description += "variable:  {0}\t".format(self.variable)
+        description += "value:  {0}\t".format(self.value)
+        description += "reason:  {0}\t".format(self.reason)
+        description += "level:  {0}\t".format(self.level)
+        description += "index:  {0}\n".format(self.index)
         return description
 
 class Trail:
@@ -171,10 +170,9 @@ class Trail:
             Formatted print string
         """
         description = ""
-        description += "Trail:"
+        description += "Trail:\n"
         for node in self.node_list:
-            description += "{0}\t{1}\t{2}\n".format(
-                node.literal, node.reason, node.level)
+            description += str(node)
         return description
 
 
