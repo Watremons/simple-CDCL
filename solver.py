@@ -279,7 +279,7 @@ class SatSolver:
             # do "conflict analysis" process
             if self.detect_false_clause():
                 if self.now_decision_level == 0:
-                    self.answer="UNSAT"
+                    self.answer="unSAT"
                     return
                 new_clause, back_level = self.conflict_analyze()
                 self.cnf.clause_list.append(new_clause)
@@ -300,7 +300,7 @@ class SatSolver:
 if __name__ == "__main__":
     cnf = cnf_parse("./raw/test.cnf")
     #print(cnf)
-    raw_cnf = deepcopy(cnf)
+    raw_cnf = str(cnf)
     solver = SatSolver(cnf)
     solver.solve()
     solver.print_result(raw_cnf=raw_cnf)
