@@ -5,7 +5,7 @@ from copy import deepcopy
 from models import Literal, Clause, Cnf
 from models import Node, Trail
 from parse import cnf_parse
-from utils import resolute_clause, to_clause, to_variable
+from utils import resolute_clause
 
 
 class SatSolver:
@@ -172,11 +172,12 @@ class SatSolver:
         conflict_node = self.trail.node_list[-1]
         assert conflict_node.reason is not None, "Error: Can't get the conflict clause at the end of trail"
 
-        reason_literal_list = []
-        for reason_literal in conflict_node.reason:
-            variable, sign = to_variable(reason_literal, self.cnf.variable_num)
-            reason_literal_list.append(Literal(variable=variable, sign=sign, literal=reason_literal))
-        conflict_clause = Clause(literal_list=reason_literal_list)
+        # reason_literal_list = []
+        # for reason_literal in conflict_node.reason:
+        #     variable, sign = to_variable(reason_literal, self.cnf.variable_num)
+        #     reason_literal_list.append(Literal(variable=variable, sign=sign, literal=reason_literal))
+        # conflict_clause = Clause(literal_list=reason_literal_list)
+        conflict_clause = self.cnf.clause_list[conflict_node.reason]
 
         # 2.Check the conflict clause has only one literal at conflict level
         # if not, use the clause at conflict level to resolute excess literals
@@ -184,7 +185,7 @@ class SatSolver:
             flag, latest_conflict_level_node = self.is_study_clause(conflict_clause, last_decision_level)
             if flag:
                 break
-            to_resolute_clause = to_clause(latest_conflict_level_node, self.cnf.variable_num)
+            to_resolute_clause = self.cnf.clause_list[latest_conflict_level_node.reason]
 
             conflict_clause = resolute_clause(
                 conflict_clause=conflict_clause,
