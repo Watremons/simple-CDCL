@@ -127,7 +127,7 @@ class Node:
         None
     '''
     def __init__(self, variable: Union[int, None], value: bool,
-                 reason: Union[None, list[int]], level: int, index: int) -> None:
+                 reason: Union[None, int], level: int, index: int) -> None:
         """
         Method:
             Constructed Funtion

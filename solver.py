@@ -119,13 +119,13 @@ class SatSolver:
             if literal is None:
                 # there is no unit clause
                 break
-            print("set value",literal)   #TODO
+            #print("set value",literal)   #TODO
             self.set_value(literal,literal.sign)
             self.append_node_to_current_level(literal, clause_index)
 
-    def append_node_to_current_level(self, literal, clause_index):
-        node = Node(variable=literal.variable, value=self.assignments[literal.variable], reason=clause_index, level=self.now_decision_level, index=self.node_index)
-        print(node)  #TODO
+    def append_node_to_current_level(self, literal, reason):
+        node = Node(variable=literal.variable, value=self.assignments[literal.variable], reason=reason, level=self.now_decision_level, index=self.node_index)
+        #print(node)  #TODO
         self.node_index += 1
         self.trail.node_list.append(node)
 
@@ -134,7 +134,7 @@ class SatSolver:
         Method:
             Update the value of each clause
         """
-        index=0  #TODO
+        #index=0  #TODO
         for clause in self.cnf.clause_list:
             len_clause = len(clause.literal_list)
             # the number of Ture literal
@@ -151,8 +151,8 @@ class SatSolver:
                 clause.value = True  # 则子句取真
             elif num_false == len_clause:  # 所有文字取假（冲突）
                 clause.value = False  # 则子句取假
-            print(index,clause.value)  #TODO
-            index+=1  #TODO
+            #print(index,clause.value)  #TODO
+            #index+=1  #TODO
 
     def conflict_analyze(self) -> tuple[Clause, int]:
         """
@@ -297,7 +297,8 @@ class SatSolver:
                 if self.now_decision_level == 0:
                     self.answer = "unSAT"
                     return
-                #new_clause, back_level = self.conflict_analyze()
+                new_clause, back_level = self.conflict_analyze()
+                print(new_clause, back_level)
                 #self.cnf.clause_list.append(new_clause)
                 # do BACKTRACK process
                 #elf.backtrack(back_level)
@@ -309,13 +310,13 @@ class SatSolver:
                 self.now_decision_level += 1
                 new_unassigned_literal = self.decide()
                 if new_unassigned_literal:
-                    print("set_value",new_unassigned_literal)
+                    #print("set_value",new_unassigned_literal)  #TODO
                     self.set_value(new_unassigned_literal,not new_unassigned_literal.sign)
                     self.append_node_to_current_level(new_unassigned_literal, None)
 
 
 if __name__ == "__main__":
-    cnf = cnf_parse("./raw/test8.cnf")
+    cnf = cnf_parse("./raw/test4.cnf")
     # print(cnf)
     raw_cnf = str(cnf)
     solver = SatSolver(cnf)
