@@ -119,11 +119,13 @@ class SatSolver:
             if literal is None:
                 # there is no unit clause
                 break
-            self.set_value(literal)
+            print("set value",literal)   #TODO
+            self.set_value(literal,literal.sign)
             self.append_node_to_current_level(literal, clause_index)
 
     def append_node_to_current_level(self, literal, clause_index):
         node = Node(variable=literal.variable, value=self.assignments[literal.variable], reason=clause_index, level=self.now_decision_level, index=self.node_index)
+        print(node)  #TODO
         self.node_index += 1
         self.trail.node_list.append(node)
 
@@ -132,6 +134,7 @@ class SatSolver:
         Method:
             Update the value of each clause
         """
+        index=0  #TODO
         for clause in self.cnf.clause_list:
             len_clause = len(clause.literal_list)
             # the number of Ture literal
@@ -148,6 +151,8 @@ class SatSolver:
                 clause.value = True  # 则子句取真
             elif num_false == len_clause:  # 所有文字取假（冲突）
                 clause.value = False  # 则子句取假
+            print(index,clause.value)  #TODO
+            index+=1  #TODO
 
     def conflict_analyze(self) -> tuple[Clause, int]:
         """
@@ -171,7 +176,7 @@ class SatSolver:
         for reason_literal in conflict_node.reason:
             variable, sign = to_variable(reason_literal, self.cnf.variable_num)
             reason_literal_list.append(Literal(variable=variable, sign=sign, literal=reason_literal))
-        conflict_clause = Clause(literal_list=reason_literal_list, literal_num=len(reason_literal_list))
+        conflict_clause = Clause(literal_list=reason_literal_list)
 
         # 2.Check the conflict clause has only one literal at conflict level
         # if not, use the clause at conflict level to resolute excess literals
@@ -202,13 +207,13 @@ class SatSolver:
         # 4.Return
         return study_clause, backtrack_decision_level
 
-    def set_value(self, literal):
+    def set_value(self, literal,value):
         """
         Method:
             Set the value of literal and update the value of clause
         """
         if literal.variable in self.assignments:
-            self.assignments[literal.variable] = literal.sign
+            self.assignments[literal.variable] = value
         self.update_clause_value()
 
     def backtrack(self, back_level: int) -> None:
@@ -304,12 +309,13 @@ class SatSolver:
                 self.now_decision_level += 1
                 new_unassigned_literal = self.decide()
                 if new_unassigned_literal:
-                    self.set_value(new_unassigned_literal)
+                    print("set_value",new_unassigned_literal)
+                    self.set_value(new_unassigned_literal,not new_unassigned_literal.sign)
                     self.append_node_to_current_level(new_unassigned_literal, None)
 
 
 if __name__ == "__main__":
-    cnf = cnf_parse("./raw/test3.cnf")
+    cnf = cnf_parse("./raw/test8.cnf")
     # print(cnf)
     raw_cnf = str(cnf)
     solver = SatSolver(cnf)
