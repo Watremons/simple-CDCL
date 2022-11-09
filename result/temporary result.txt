@@ -25,7 +25,7 @@ unSAT
 Trail:
 variable: 1	value:  True	reason:0	level: 0	index: 0
 
-test6 
+test6
 clause_num=2,variable_num=2
 (x1)^(-x1V-x2)
 SAT

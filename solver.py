@@ -243,12 +243,16 @@ class SatSolver:
             Select a variable to assign value
         """
         # Sequential traversal the cnf to find an unassigned literal
+        l=None
         for clause in self.cnf.clause_list:
             for literal in clause.literal_list:
                 value = self.get_value(literal)
                 if value is None:
-                    return literal
-        return None
+                    if clause.value==None:
+                        return literal
+                    elif clause.value==True:
+                        l=literal
+        return l
 
     def unassigned_variable_exists(self):
         """
@@ -305,7 +309,7 @@ class SatSolver:
 
 
 if __name__ == "__main__":
-    cnf = cnf_parse("./raw/test6.cnf")
+    cnf = cnf_parse("./raw/test3.cnf")
     # print(cnf)
     raw_cnf = str(cnf)
     solver = SatSolver(cnf)
