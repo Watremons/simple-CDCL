@@ -87,6 +87,8 @@ class SatSolver:
         """
         for index in range(len(self.cnf.clause_list)):
             clause = self.cnf.clause_list[index]
+            if clause.value==True:
+                continue
             len_clause = len(clause.literal_list)
             # the number of unassigned literals
             num_undefined = 0
@@ -119,7 +121,6 @@ class SatSolver:
                 break
             self.set_value(literal)
             self.append_node_to_current_level(literal, clause_index)
-        self.update_clause_value()
 
     def append_node_to_current_level(self, literal, clause_index):
         node = Node(variable=literal.variable, value=self.assignments[literal.variable], reason=clause_index, level=self.now_decision_level, index=self.node_index)
@@ -204,10 +205,11 @@ class SatSolver:
     def set_value(self, literal):
         """
         Method:
-            Set the value of literal
+            Set the value of literal and update the value of clause
         """
         if literal.variable in self.assignments:
             self.assignments[literal.variable] = literal.sign
+        self.update_clause_value()
 
     def backtrack(self, back_level: int) -> None:
         """
@@ -286,10 +288,10 @@ class SatSolver:
                 if self.now_decision_level == 0:
                     self.answer = "unSAT"
                     return
-                new_clause, back_level = self.conflict_analyze()
-                self.cnf.clause_list.append(new_clause)
+                #new_clause, back_level = self.conflict_analyze()
+                #self.cnf.clause_list.append(new_clause)
                 # do BACKTRACK process
-                self.backtrack(back_level)
+                #elf.backtrack(back_level)
             else:
                 if not self.unassigned_variable_exists():
                     self.answer = "SAT"
@@ -303,7 +305,7 @@ class SatSolver:
 
 
 if __name__ == "__main__":
-    cnf = cnf_parse("./raw/test5.cnf")
+    cnf = cnf_parse("./raw/test6.cnf")
     # print(cnf)
     raw_cnf = str(cnf)
     solver = SatSolver(cnf)
