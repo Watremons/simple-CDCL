@@ -1,6 +1,3 @@
-# Standard lib
-from copy import deepcopy
-
 # Customized lib
 from models import Literal, Clause, Cnf
 from models import Node, Trail
