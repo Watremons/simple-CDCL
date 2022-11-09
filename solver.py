@@ -65,13 +65,18 @@ class SatSolver:
 
         return count == 1, max_index_node
 
-    def get_value(self, variable):
+    def get_value(self, literal):
         """
         Method:
             Get the value of a variable
         """
-        if variable in self.assignments:
-            return self.assignments[variable]
+        if literal.variable in self.assignments:
+            if self.assignments[literal.variable] is None:
+                return None
+            elif literal.sign==self.assignments[literal.variable]:
+                return True
+            else:
+                return False
         else:
             return None
 
@@ -90,8 +95,8 @@ class SatSolver:
             # the unassigned literal
             undefined_literal = None
             for literal in clause.literal_list:
-                value = self.get_value(literal.variable)
-                if not value:
+                value = self.get_value(literal)
+                if value==False:
                     num_false += 1
                 elif value is None:
                     undefined_literal = literal
@@ -116,12 +121,10 @@ class SatSolver:
             self.append_node_to_current_level(literal, clause_index)
         self.update_clause_value()
 
-    # TODO ：在迹中添加结点
     def append_node_to_current_level(self, literal, clause_index):
-        node = Node(variable=literal.variable, value=self.get_value(literal.variable), reason=clause_index, level=self.now_decision_level, index=self.node_index)
+        node = Node(variable=literal.variable, value=self.assignments[literal.variable], reason=clause_index, level=self.now_decision_level, index=self.node_index)
         self.node_index += 1
         self.trail.node_list.append(node)
-        pass
 
     def update_clause_value(self):  # 更新子句的值
         """
@@ -135,10 +138,10 @@ class SatSolver:
             # the number of False literal
             num_false = 0
             for literal in clause.literal_list:
-                r = self.get_value(literal.variable)
-                if r:
+                r = self.get_value(literal)
+                if r==True:
                     num_true += 1
-                elif not r:
+                elif r==False:
                     num_false += 1
             if num_true >= 1:  # 至少有一个文字取真
                 clause.value = True  # 则子句取真
@@ -240,7 +243,7 @@ class SatSolver:
         # Sequential traversal the cnf to find an unassigned literal
         for clause in self.cnf.clause_list:
             for literal in clause.literal_list:
-                value = self.get_value(literal.variable)
+                value = self.get_value(literal)
                 if value is None:
                     return literal
         return None
@@ -255,9 +258,11 @@ class SatSolver:
                 return True
         return False
 
-    def detect_false_clause(self):
-        # TODO: Add the conflict clause to trail if detecting a false clause
-        pass
+    def detect_conflict_clause(self):
+        for clause in self.cnf.clause_list:
+            if clause.value == False :
+                return True
+        return False
 
     def print_result(self, raw_cnf):
         """
@@ -266,17 +271,18 @@ class SatSolver:
         """
         print(raw_cnf)
         print(self.answer)
-        for i in range(1, cnf.variable_num+1):
-            # print( "{"+str(i)+":"+str(self.assignments[i])+"}",end=' ')
-            print(f'{i}:{self.assignments[i]}', end=' ')
-        print()
+        if (self.answer=="SAT"):
+            for i in range(1, cnf.variable_num+1):
+                # print( "{"+str(i)+":"+str(self.assignments[i])+"}",end=' ')
+                print(f'{i}:{self.assignments[i]}', end=' ')
+            print()
 
     def solve(self):
         while True:
             # do BCP process
             self.unit_propagate()
             # do "conflict analysis" process
-            if self.detect_false_clause():
+            if self.detect_conflict_clause():
                 if self.now_decision_level == 0:
                     self.answer = "unSAT"
                     return
@@ -297,7 +303,7 @@ class SatSolver:
 
 
 if __name__ == "__main__":
-    cnf = cnf_parse("./raw/test.cnf")
+    cnf = cnf_parse("./raw/test5.cnf")
     # print(cnf)
     raw_cnf = str(cnf)
     solver = SatSolver(cnf)
