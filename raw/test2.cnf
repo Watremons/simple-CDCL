@@ -1,4 +1,4 @@
-c A simple test
+c A testcase for test.py
 p cnf 12 11
 -1 -2 0
 -1 3 0
