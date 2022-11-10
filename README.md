@@ -2,6 +2,8 @@
 
 Simple implementation of CDCL by Python
 
+[Project Address](https://github.com/Watremons/simple-CDCL)
+
 ## 0. 环境配置与启动
 
 ### 0.1 环境配置
