@@ -43,9 +43,9 @@ Modify the file_path in solver.py to run the code by the specified .cnf input fi
 
 判断UNSAT的条件：当决策层级为0时出现冲突，说明没有对任何变量决策的情况下就已冲突，返回UNSAT
 
-### 2.1 布尔约束传播
+### 2.1 布尔约束传播(BCP)
 
-布尔约束传播主要分为三步：
+布尔约束传播(BCP)主要分为三步：
 
 ```
 1.找到CNF中可能存在的单位子句
@@ -53,7 +53,9 @@ Modify the file_path in solver.py to run the code by the specified .cnf input fi
 3.重复上述过程直到CNF中不再有单位子句
 ```
 
-### 2.2 冲突分析学习
+BCP结束后如果有冲突，进入冲突分析学习(Conflict Analysis)，无冲突则进入决策(DECIDE)
+
+### 2.2 冲突分析学习(Conflict Analysis)
 
 冲突分析学习出现在某次BCP结束后发现冲突时，如果某个子句值为False（发现冲突），则进行UNSAT判断
 
@@ -82,10 +84,13 @@ Modify the file_path in solver.py to run the code by the specified .cnf input fi
 1.记录产生冲突的子句下标，在该子句中寻找第一个属于当前决策层的变量u
 2.在trail中找到该变量对应的节点，取出节点的reason对应的子句
 3.将冲突子句和reason子句做并操作，得到一个新的冲突子句，该子句必定不含有u和¬u
-4.重复1-3直至冲突子句中只剩下一个节点属于当前决策层的变量
+4.重复1-3直至冲突子句中只剩下一个节点属于当前决策层的变量，此时得到的冲突子句即为学习子句
+5.从冲突子句中取得第二大的决策层级作为回溯的目标层级，若都为同一层则回溯到0层
 ```
 
-### 2.3 回溯
+完成冲突分析学习后得到学习子句和目标回溯层，进入回溯(Backtrack)
+
+### 2.3 回溯(Backtrack)
 
 回溯部分的处理较为简单，主要分为两步：
 
@@ -94,6 +99,13 @@ Modify the file_path in solver.py to run the code by the specified .cnf input fi
 2.将当前决策层级设为目标回溯层次
 ```
 
-回溯结束后回到BCP阶段
+回溯结束后回到BCP
 
-### 2.4 决策
+### 2.4 决策(DECIDE)
+
+决策阶段处理也较为简单，主要分为两步：
+
+```
+1.创建一个新的决策层（solver保存的决策层计数器+1）；
+2.选择一个未被赋值的文字，将其文字或文字取非与CNF相交（表示该文字取真或假）
+```
