@@ -18,7 +18,7 @@ class SatSolver:
         solve: solve the SAT Problem by CDCL algorithm
         is_study_clause: judge whether a conflict_clause is a study clause and return a literal in conflict_level
     """
-    def __init__(self, cnf: Cnf):
+    def __init__(self, cnf: Cnf,conflict_threshold:int):
         """
         Method:
             Constructed Function
@@ -29,6 +29,9 @@ class SatSolver:
         self.variable_to_node = dict()
         self.assignments = dict()
         self.now_decision_level = 0
+        self.conflict_num = 0
+        self.restart_num = 0
+        self.conflict_threshold = conflict_threshold
         # Use assignments to record the variable to assigned node
         self.assignments = dict()
         self.answer = None
@@ -150,6 +153,8 @@ class SatSolver:
                 clause.value = True  # 则子句取真
             elif num_false == len_clause:  # 所有文字取假（冲突）
                 clause.value = False  # 则子句取假
+            else:
+                clause.value = None
 
     def conflict_analyze(self) -> tuple[Clause, int]:
         """
@@ -298,6 +303,7 @@ class SatSolver:
                 # print( "{"+str(i)+":"+str(self.assignments[i])+"}",end=' ')
                 print(f'{i}:{self.assignments[i]}', end=' ')
             print()
+        print(f'the number of restarts is {self.restart_num}')
 
     def append_conflict_node_to_trail(self,conflict_clause_num):
         """
@@ -324,7 +330,14 @@ class SatSolver:
                 new_clause, back_level = self.conflict_analyze()
                 self.cnf.clause_list.append(new_clause)
                 self.cnf.clause_num+=1
-                #do BACKTRACK process
+                # Count the number of conflicts and restart
+                self.conflict_num += 1
+                if self.conflict_num == self.conflict_threshold:
+                    # do th restart
+                    self.conflict_num = 0
+                    self.restart_num += 1
+                    back_level=0
+                #do BACKTRACK process'''
                 self.backtrack(back_level)
             else:
                 if not self.unassigned_variable_exists():
@@ -338,8 +351,8 @@ class SatSolver:
                     self.append_node_to_current_level(new_unassigned_literal, None)
 
 if __name__ == "__main__":
-    cnf = cnf_parse("./raw/test7.cnf")
+    cnf = cnf_parse("./raw/test2.cnf")
     raw_cnf = str(cnf)
-    solver = SatSolver(cnf)
+    solver = SatSolver(cnf,conflict_threshold=2)
     solver.solve()
     solver.print_result(raw_cnf=raw_cnf)
