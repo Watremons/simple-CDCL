@@ -191,7 +191,7 @@ class SatSolver:
         """
         for index in range(len(self.cnf.clause_list)):
             clause = self.cnf.clause_list[index]
-            if clause.value:
+            if clause.value == True:
                 continue
             len_clause = len(clause.literal_list)
             # the number of unassigned literals
@@ -202,7 +202,7 @@ class SatSolver:
             undefined_literal = None
             for literal in clause.literal_list:
                 value = self.get_value(literal)
-                if not value:
+                if value == False:
                     num_false += 1
                 elif value is None:
                     undefined_literal = literal
@@ -263,9 +263,9 @@ class SatSolver:
             num_false = 0
             for literal in clause.literal_list:
                 r = self.get_value(literal)
-                if r:
+                if r == True:
                     num_true += 1
-                elif not r:
+                elif r == False:
                     num_false += 1
             if num_true >= 1:  # 至少有一个文字取真
                 clause.value = True  # 则子句取真
@@ -458,11 +458,10 @@ class SatSolver:
                 for literal in clause.literal_list:
                     value = self.get_value(literal)
                     if value is None:
-                        if clause.value is None:
-                            return literal, not literal.sign
-                        elif clause.value:
+                        if clause.value == None:
+                            return literal
+                        elif clause.value == True:
                             decide_literal = literal
-                            decide_value = not literal.sign
 
         return decide_literal, decide_value
 
@@ -479,7 +478,7 @@ class SatSolver:
     def detect_conflict_clause(self):
         clause_index = 0
         for clause in self.cnf.clause_list:
-            if not clause.value:
+            if clause.value == False :
                 return clause_index
             clause_index += 1
         return -1
