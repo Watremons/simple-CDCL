@@ -271,9 +271,7 @@ class PriorityQueue:
         description += "]"
         return description
 
+
 if __name__ == "__main__":
-    rawList = [1]
-    heapq.heappop(rawList)
-    print(rawList)
-    heapq.heappop(rawList)
-    print(rawList)
+    value = None
+    print(not value)
