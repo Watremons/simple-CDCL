@@ -1,4 +1,5 @@
 from typing import Union
+import heapq
 
 
 class Literal:
@@ -180,6 +181,97 @@ class Trail:
         return description
 
 
+class PriorityQueueItem:
+    """
+    Class:
+        item in priority queue
+    """
+    def __init__(self, key: int, value: int) -> None:
+        """
+        Method:
+            Constructed Function
+        """
+        self.key = key
+        self.value = value
+
+    def __lt__(self, other) -> bool:
+        return self.value < other.value
+
+
+class PriorityQueue:
+    """
+    Class:
+        a priority queue ordered by list value
+    """
+    def __init__(self, queue: list[int]) -> None:
+        """
+        Method:
+            Contructed Function
+        """
+        raw_queue = []
+        for index, element in enumerate(queue[1:], start=1):
+            # Push element with minus value to get a greater heap
+            heapq.heappush(raw_queue, PriorityQueueItem(key=index, value=-element))
+        self.queue = raw_queue
+
+    def pop_front(self) -> Union[PriorityQueueItem, None]:
+        """
+        Method:
+            Get the greatest element at the front of PriorityQueue
+        Return:
+            element: the greatest element
+        """
+        if len(self.queue) == 0:
+            return None
+        return heapq.heappop(self.queue)
+
+    def increase_priority(self, key: int, value: int) -> None:
+        """
+        Method:
+            Modify the priority of item in PriorityQueue by key
+        Params:
+            key: the key of target item
+            value: the increase value of item
+        """
+        for index in len(self.queue):
+            if self.queue[index].key == key:
+                self.queue[index].value -= value
+                break
+        heapq.heapify(self.queue)
+
+    def push_back(self, key: int, value: int) -> None:
+        """
+        Method:
+            Push a new element into PriorityQueue
+        Params:
+            key: the key of target item
+            value: the modified value of item
+        """
+        heapq.heappush(self.queue, PriorityQueueItem(key=key, value=value))
+
+    def remove(self, key: int) -> None:
+        """
+        Method:
+            Remove a priority queue item by key
+        Params:
+            key: the key of target priority queue item
+        """
+        for index, element in enumerate(self.queue):
+            if element.key == key:
+                del self.queue[index]
+                break
+
+    def __str__(self) -> str:
+        description = ""
+        description += "["
+        element_list = []
+        for element in self.queue:
+            element_list.append("({},{})".format(element.key, element.value))
+        description += ",".join(element_list)
+        description += "]"
+        return description
+
+
 if __name__ == "__main__":
-    n = 1
-    print(type(n))
+    value = None
+    print(not value)

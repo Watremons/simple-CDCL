@@ -1,5 +1,32 @@
 
-from models import Clause, Literal, Node
+from models import Clause, Literal
+
+
+def to_variable(literal: int, variable_num: int) -> tuple[int, int]:
+    """
+    Method:
+        Trans literal to variable
+    Return:
+        variable: variable num
+        sign: variable sign
+    """
+    if literal <= variable_num:
+        return literal, 1
+    else:
+        return literal - variable_num, 0
+
+
+def to_literal(variable: int, sign: int, variable_num: int) -> int:
+    """
+    Method:
+        Trans variable to literal
+    Return:
+        literal: literal
+    """
+    if sign:
+        return variable
+    else:
+        return variable + variable_num
 
 
 def resolute_clause(conflict_clause: Clause, to_resolute_clause: Clause, variable: int, variable_num: int) -> Clause:
