@@ -58,7 +58,6 @@ class SatSolver:
             variable_node = self.variable_to_node[conflict_variable]
             if variable_node.level == conflict_level:
                 count += 1
-                # TODO: set the index
                 if max_index < variable_node.index:
                     max_index = variable_node.index
                     max_index_node = variable_node
