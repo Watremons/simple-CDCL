@@ -138,8 +138,8 @@ class SatSolver:
             self.decide_priority_queue = PriorityQueue(self.variable_score_list)
             self.score_increment = 0.85
 
-        print(self.literal_score_list)
-        print(self.decide_priority_queue)
+        # print(self.literal_score_list)
+        # print(self.decide_priority_queue)
         # Return the result
         return self.cnf
 
@@ -232,8 +232,8 @@ class SatSolver:
                         variable_num=self.cnf.variable_num
                     )
                 )
-                print(self.literal_score_list)
-                print(self.decide_priority_queue)
+                # print(self.literal_score_list)
+                # print(self.decide_priority_queue)
             if self.decider == "MINISAT":
                 self.decide_priority_queue.remove(literal.variable)
                 self.phase[literal.variable] = literal.sign
@@ -330,8 +330,8 @@ class SatSolver:
                 self.decide_priority_queue.increase_priority(study_literal.variable, self.decide_conflict_score)
             self.decide_conflict_score /= self.score_increment
 
-        print(self.literal_score_list)
-        print(self.decide_priority_queue)
+        # print(self.literal_score_list)
+        # print(self.decide_priority_queue)
         # 3.Record the backtrack decision level
         if len(conflict_clause.literal_list) == 1:
             # return to level 0 if study clause has only one literal
@@ -392,8 +392,8 @@ class SatSolver:
                             key=negative_literal,
                             value=self.literal_score_list[negative_literal]
                         )
-                        print(self.literal_score_list)
-                        print(self.decide_priority_queue)
+                        # print(self.literal_score_list)
+                        # print(self.decide_priority_queue)
                     if self.decider == "MINISAT":
                         self.decide_priority_queue.push_back(
                             key=last_node.variable,
@@ -440,8 +440,8 @@ class SatSolver:
                         variable_num=self.cnf.variable_num
                     )
                 )
-            print(self.literal_score_list)
-            print(self.decide_priority_queue)
+            # print(self.literal_score_list)
+            # print(self.decide_priority_queue)
         elif self.decider == "MINISAT":
             # 1.Get the greatest variable
             # 2.Using the variable and sign in phase to do DECIDE
