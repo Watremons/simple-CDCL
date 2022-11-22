@@ -191,9 +191,9 @@ class SatSolver:
         """
         for index in range(len(self.cnf.clause_list)):
             clause = self.cnf.clause_list[index]
-            if clause.value == True:
+            if clause.value is not None and clause.value:
                 continue
-            len_clause = len(clause.literal_list)
+            # len_clause = len(clause.literal_list)
             # the number of unassigned literals
             num_undefined = 0
             # the number of literals assigned False
@@ -202,11 +202,11 @@ class SatSolver:
             undefined_literal = None
             for literal in clause.literal_list:
                 value = self.get_value(literal)
-                if value == False:
-                    num_false += 1
-                elif value is None:
+                if value is None:
                     undefined_literal = literal
                     num_undefined += 1
+                elif not value:
+                    num_false += 1
             if num_undefined == 1:
                 return undefined_literal, index
         return None, None
@@ -263,9 +263,11 @@ class SatSolver:
             num_false = 0
             for literal in clause.literal_list:
                 r = self.get_value(literal)
-                if r == True:
+                if r is None:
+                    continue
+                elif r:
                     num_true += 1
-                elif r == False:
+                elif not r:
                     num_false += 1
             if num_true >= 1:  # 至少有一个文字取真
                 clause.value = True  # 则子句取真
@@ -458,9 +460,9 @@ class SatSolver:
                 for literal in clause.literal_list:
                     value = self.get_value(literal)
                     if value is None:
-                        if clause.value == None:
+                        if clause.value is None:
                             return literal
-                        elif clause.value == True:
+                        elif clause.value:
                             decide_literal = literal
 
         return decide_literal, decide_value
@@ -478,7 +480,7 @@ class SatSolver:
     def detect_conflict_clause(self):
         clause_index = 0
         for clause in self.cnf.clause_list:
-            if clause.value == False :
+            if clause.value is not None and not clause.value:
                 return clause_index
             clause_index += 1
         return -1
