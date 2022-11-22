@@ -209,7 +209,7 @@ class PriorityQueue:
             Contructed Function
         """
         raw_queue = []
-        for index, element in enumerate(queue, start=1):
+        for index, element in enumerate(queue[1:], start=1):
             # Push element with minus value to get a greater heap
             heapq.heappush(raw_queue, PriorityQueueItem(key=index, value=-element))
         self.queue = raw_queue
