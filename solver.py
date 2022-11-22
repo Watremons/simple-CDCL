@@ -1,8 +1,7 @@
 # Customized lib
-from models import Literal, Clause, Cnf
+from models import Literal, Clause, Cnf, PriorityQueue
 from models import Node, Trail
-from parse import cnf_parse
-from utils import resolute_clause
+from utils import resolute_clause, to_literal, to_variable
 
 
 class SatSolver:
@@ -18,25 +17,131 @@ class SatSolver:
         solve: solve the SAT Problem by CDCL algorithm
         is_study_clause: judge whether a conflict_clause is a study clause and return a literal in conflict_level
     """
-    def __init__(self, cnf: Cnf, conflict_threshold: int):
+    def __init__(self, conflict_threshold: int, decider: str):
         """
         Method:
             Constructed Function
         """
         self.node_index = 0
-        self.cnf = cnf
         self.trail = Trail(node_list=[])
         self.variable_to_node = dict()
         self.assignments = dict()
         self.now_decision_level = 0
+
+        # Data used in heuristic decide
+        """
+        Heuristic Decide:
+            1.init score list and priority list when parse the .cnf file
+            2.pop greatest element from priority list when making a decision or BCP
+            3.modified the score list when conflicts happen
+            4.add elements according to score list when backtrack
+        """
+        # Decider type
+        self.decider = decider
+        # score for each variables and size 2*variable_num+1 in VSIDS
+        self.literal_score_list = []
+        # score for each literals and size variable_num+1 in MINISAT
+        self.variable_score_list = []
+        # last value for each variables
+        # size variable_num+1 in MINISAT
+        self.phase = []
+        # Extra score for each conflicts
+        self.decide_conflict_score = 1
+        # Increment of conflict score for each conflicts
+        self.score_increment = 0
+        # A priority queue for variable ordered by variable score
+        self.decide_priority_queue = None
+
+        # Data used in heuristic restart
         self.conflict_num = 0
         self.restart_num = 0
         self.conflict_threshold = conflict_threshold
         # Use assignments to record the variable to assigned node
         self.assignments = dict()
         self.answer = None
-        for i in range(1, cnf.variable_num+1):
+
+    def cnf_parse(self, file_path: str) -> Cnf:
+        """
+        Method:
+            Parse the .cnf file to a Cnf instance
+        Params:
+            file_path: the file path of .cnf file
+        Return:
+            cnf: the cnf extracted from .cnf file
+        """
+        file_content = []
+        with open(file_path) as f:
+            while True:
+                line = f.readline()
+                if not line:
+                    break
+                elif line.startswith('c'):
+                    # Skip the comment lines which starts with 'c' and delete '\n' at the end
+                    pass
+                elif line.startswith('p'):
+                    # Get the first line after comment, starts with p cnf
+                    word_list = line.split(' ')
+                    assert word_list[1] == "cnf", "InputError: Context need to start with 'p' and 'cnf'"
+                    variable_num = int(word_list[2])
+                    clause_num = int(word_list[3])
+                else:
+                    file_content.append(line.rstrip('\n'))
+            f.close()
+
+        assert variable_num is not None and clause_num is not None, "InputError: Context need to start with 'p' and 'cnf'"
+        assert clause_num == (
+            len(file_content)
+        ), "InputError: The lines of context <int:{file_content}> is not equal to clause <int:{clause_num}>".format(
+            file_content=len(file_content), clause_num=clause_num)
+
+        # Init the score used in decider
+        if self.decider == "VSIDS":
+            self.literal_score_list = [0 for _ in range(variable_num*2 + 1)]
+        elif self.decider == "MINISAT":
+            self.variable_score_list = [0 for _ in range(variable_num + 1)]
+            self.phase = [0 for _ in range(variable_num + 1)]
+        # Read every line as a clause
+        clause_list = []
+        for line_index in range(clause_num):
+            raw_literal_list = file_content[line_index].split(' ')
+            raw_literal_list = raw_literal_list[:-1]
+            literal_list = []
+            for raw_literal in raw_literal_list:
+                if raw_literal.startswith('-'):
+                    # Handle a negative literal
+                    variable = int(raw_literal.lstrip('-'))
+                    sign = False
+                    literal = variable + variable_num
+                else:
+                    # Handle a positive literal
+                    variable = int(raw_literal)
+                    sign = True
+                    literal = variable
+                literal_list.append(Literal(variable=variable, sign=sign, literal=literal))
+                # Record the score for specific decider
+                if self.decider == "VSIDS":
+                    self.literal_score_list[variable] += 1
+                elif self.decider == "MINISAT":
+                    self.variable_score_list[literal] += 1
+                    self.phase = [False for _ in range(variable_num + 1)]
+            clause_list.append(Clause(literal_list=literal_list))
+        # Set the cnf for solver
+        self.cnf = Cnf(clause_list=clause_list, clause_num=clause_num, variable_num=variable_num)
+        for i in range(1, self.cnf.variable_num+1):
             self.assignments[i] = None
+
+        # Set the decider params for solver
+        if self.decider == "VSIDS":
+            self.decide_priority_queue = PriorityQueue(self.literal_score_list)
+            self.score_increment = 0.75
+        elif self.decider == "MINISAT":
+            self.decide_priority_queue = PriorityQueue(self.variable_score_list)
+            self.score_increment = 0.85
+
+        print(self.literal_score_list)
+        print(self.decide_priority_queue)
+        # Return the result
+        return self.cnf
 
     def is_study_clause(self, conflict_clause: Clause, conflict_level: int) -> tuple[bool, Node]:
         """
@@ -58,7 +163,6 @@ class SatSolver:
             variable_node = self.variable_to_node[conflict_variable]
             if variable_node.level == conflict_level:
                 count += 1
-                # TODO: set the index
                 if max_index < variable_node.index:
                     max_index = variable_node.index
                     max_index_node = variable_node
@@ -119,6 +223,20 @@ class SatSolver:
             if literal is None:
                 # there is no unit clause
                 break
+            if self.decider == "VSIDS":
+                self.decide_priority_queue.remove(literal.variable)
+                self.decide_priority_queue.remove(
+                    to_literal(
+                        variable=literal.variable,
+                        sign=False,
+                        variable_num=self.cnf.variable_num
+                    )
+                )
+                print(self.literal_score_list)
+                print(self.decide_priority_queue)
+            if self.decider == "MINISAT":
+                self.decide_priority_queue.remove(literal.variable)
+                self.phase[literal.variable] = literal.sign
             self.set_value(literal, literal.sign)
             self.append_node_to_current_level(literal, clause_index)
 
@@ -197,6 +315,21 @@ class SatSolver:
             )
 
         study_clause = conflict_clause
+        # Modify the heuristic decide related data
+        if self.decider == "VSIDS":
+            for study_literal in study_clause.literal_list:
+                self.literal_score_list[study_literal.literal] += self.decide_conflict_score
+                self.decide_priority_queue.increase_priority(study_literal.literal, self.decide_conflict_score)
+            self.decide_conflict_score += self.score_increment
+
+        if self.decider == "MINISAT":
+            for study_literal in study_clause.literal_list:
+                self.variable_score_list[study_literal.variable] += self.decide_conflict_score
+                self.decide_priority_queue.increase_priority(study_literal.variable, self.decide_conflict_score)
+            self.decide_conflict_score /= self.score_increment
+
+        print(self.literal_score_list)
+        print(self.decide_priority_queue)
         # 3.Record the backtrack decision level
         if len(conflict_clause.literal_list) == 1:
             # return to level 0 if study clause has only one literal
@@ -239,12 +372,31 @@ class SatSolver:
                 break
             last_node = self.trail.node_list.pop()
             if last_node.level <= back_level:
-                # break
+                # break if no node remain, whose level is greater than back level
                 break
             else:
                 if last_node.variable is not None:
                     self.variable_to_node.pop(last_node.variable)
                     self.clear_value_of_variable(last_node.variable)
+                    # Restore the item remove from priority queue
+                    if self.decider == "VSIDS":
+                        positive_literal = to_literal(variable=last_node.variable, sign=True, variable_num=self.cnf.variable_num)
+                        negative_literal = to_literal(variable=last_node.variable, sign=False, variable_num=self.cnf.variable_num)
+                        self.decide_priority_queue.push_back(
+                            key=positive_literal,
+                            value=self.literal_score_list[positive_literal]
+                        )
+                        self.decide_priority_queue.push_back(
+                            key=negative_literal,
+                            value=self.literal_score_list[negative_literal]
+                        )
+                        print(self.literal_score_list)
+                        print(self.decide_priority_queue)
+                    if self.decider == "MINISAT":
+                        self.decide_priority_queue.push_back(
+                            key=last_node.variable,
+                            value=self.variable_score_list[last_node.variable]
+                        )
                 del last_node
         self.update_clause_value()
 
@@ -256,22 +408,63 @@ class SatSolver:
         if variable in self.assignments:
             self.assignments[variable] = None
 
-    def decide(self):
+    def decide(self) -> tuple[Literal, bool]:
         """
         Method:
             Select a variable to assign value
         """
-        # Sequential traversal the cnf to find an unassigned literal
-        l = None
-        for clause in self.cnf.clause_list:
-            for literal in clause.literal_list:
-                value = self.get_value(literal)
-                if value is None:
-                    if clause.value is None:
-                        return literal
-                    elif clause.value:
-                        l = literal
-        return l
+        decide_literal = None
+        decide_value = None
+        if self.decider == "VSIDS":
+            # 1.Get the greatest literal and extract the variable
+            # 2.Using the variable to do DECIDE
+            # 3.Remove the another variable of the literal
+            greatest_literal_element = self.decide_priority_queue.pop_front()
+            if greatest_literal_element is not None:
+                decide_variable, decide_sign = to_variable(
+                    literal=greatest_literal_element.key,
+                    variable_num=self.cnf.variable_num
+                )
+                decide_literal = Literal(
+                    variable=decide_variable,
+                    sign=decide_sign,
+                    literal=greatest_literal_element.key
+                )
+                decide_value = not decide_sign
+                self.decide_priority_queue.remove(
+                    to_literal(
+                        variable=decide_variable,
+                        sign=not decide_sign,
+                        variable_num=self.cnf.variable_num
+                    )
+                )
+            print(self.literal_score_list)
+            print(self.decide_priority_queue)
+        elif self.decider == "MINISAT":
+            # 1.Get the greatest variable
+            # 2.Using the variable and sign in phase to do DECIDE
+            greatest_variable_element = self.decide_priority_queue.pop_front()
+            if greatest_variable_element is not None:
+                decide_variable = greatest_variable_element.key
+                decide_literal = Literal(
+                    variable=decide_variable,
+                    sign=decide_sign,
+                    literal=decide_variable
+                )
+                decide_sign = self.phase[decide_variable]
+        elif self.decider == "ORDERED":
+            # Sequential traversal the cnf to find an unassigned literal
+            for clause in self.cnf.clause_list:
+                for literal in clause.literal_list:
+                    value = self.get_value(literal)
+                    if value is None:
+                        if clause.value is None:
+                            return literal, not literal.sign
+                        elif clause.value:
+                            decide_literal = literal
+                            decide_value = not literal.sign
+
+        return decide_literal, decide_value
 
     def unassigned_variable_exists(self):
         """
@@ -337,7 +530,7 @@ class SatSolver:
                     self.conflict_num = 0
                     self.restart_num += 1
                     back_level = 0
-                # do BACKTRACK process'''
+                # do BACKTRACK process
                 self.backtrack(back_level)
             else:
                 if not self.unassigned_variable_exists():
@@ -345,15 +538,19 @@ class SatSolver:
                     return
                 # do DECIDE process
                 self.now_decision_level += 1
-                new_unassigned_literal = self.decide()
+                new_unassigned_literal, decide_value = self.decide()
                 if new_unassigned_literal:
-                    self.set_value(new_unassigned_literal, not new_unassigned_literal.sign)
+                    self.set_value(new_unassigned_literal, decide_value)
                     self.append_node_to_current_level(new_unassigned_literal, None)
 
 
 if __name__ == "__main__":
-    cnf = cnf_parse("./raw/test2.cnf")
+    heuristic_decider = "VSIDS"  # ORDERED / VSIDS / MINISAT
+    solver = SatSolver(
+        conflict_threshold=2,
+        decider=heuristic_decider
+    )
+    cnf = solver.cnf_parse("./raw/test2.cnf")
     raw_cnf = str(cnf)
-    solver = SatSolver(cnf, conflict_threshold=2)
     solver.solve()
     solver.print_result(raw_cnf=raw_cnf)
