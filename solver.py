@@ -27,7 +27,7 @@ class SatSolver:
         self.variable_to_node = dict()
         self.assignments = dict()
         self.now_decision_level = 0
-
+        self._clauses_watched_by_l = []
         # Data used in heuristic decide
         """
         Heuristic Decide:
@@ -100,6 +100,13 @@ class SatSolver:
         elif self.decider == "MINISAT":
             self.variable_score_list = [0 for _ in range(variable_num + 1)]
             self.phase = [0 for _ in range(variable_num + 1)]
+
+        #initial the _clauses_watched_by_l list:
+        _clauses_watched_by_l=[]
+        for i in range(2*variable_num+1):
+            lst=list()
+            _clauses_watched_by_l.append(lst)
+
         # Read every line as a clause
         clause_list = []
         for line_index in range(clause_num):
@@ -118,15 +125,31 @@ class SatSolver:
                     sign = True
                     literal = variable
                 literal_list.append(Literal(variable=variable, sign=sign, literal=literal))
+
                 # Record the score for specific decider
                 if self.decider == "VSIDS":
                     self.literal_score_list[variable] += 1
                 elif self.decider == "MINISAT":
                     self.variable_score_list[literal] += 1
                     self.phase = [False for _ in range(variable_num + 1)]
-            clause_list.append(Clause(literal_list=literal_list))
+
+            # 2- literal watching
+            _literals_watching_c = []
+            if len(literal_list) == 1:
+                # If this is a unary clause, then that unary literal has to be set True and so we treat it as a special case
+                _literals_watching_c = [literal_list[0]]
+                _clauses_watched_by_l[literal_list[0].literal].append(line_index)
+            else:
+                # If this is not a unary clause
+                _literals_watching_c = [literal_list[0], literal_list[1]]
+                _clauses_watched_by_l[literal_list[0].literal].append(line_index)
+                _clauses_watched_by_l[literal_list[1].literal].append(line_index)
+
+            clause_list.append(Clause(literal_list=literal_list,_literals_watching_c=_literals_watching_c))
+
         # Set the cnf for solver
         self.cnf = Cnf(clause_list=clause_list, clause_num=clause_num, variable_num=variable_num)
+        self._clauses_watched_by_l=_clauses_watched_by_l
         for i in range(1, self.cnf.variable_num+1):
             self.assignments[i] = None
 
@@ -552,6 +575,7 @@ if __name__ == "__main__":
         decider=heuristic_decider
     )
     cnf = solver.cnf_parse("./raw/test2.cnf")
+
     raw_cnf = str(cnf)
     solver.solve()
     solver.print_result(raw_cnf=raw_cnf)

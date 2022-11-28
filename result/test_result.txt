@@ -1,0 +1,5 @@
+clause_num=11,variable_num=12
+(-x1V-x2)^(-x1Vx3)^(-x3V-x4)^(x2Vx4Vx5)^(-x5Vx6V-x7)^(x2Vx7Vx8)^(-x8V-x9)^(-x8Vx10)^(x9V-x10Vx11)^(-x10V-x12)^(-x11Vx12)
+SAT
+1:False 2:True 3:False 4:False 5:False 6:False 7:False 8:False 9:False 10:False 11:False 12:False
+the number of restarts is 0

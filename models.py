@@ -55,13 +55,15 @@ class Clause:
     Method:
         None
     '''
-    def __init__(self, literal_list: list[Literal]) -> None:
+    def __init__(self, literal_list: list[Literal], _literals_watching_c: list[Literal]) -> None:
         """
         Method:
             Constructed Funtion
         """
         self.literal_list = literal_list
         self.value = None
+        #2- literal watching for this clause
+        self._literals_watching_c = _literals_watching_c
 
     def __str__(self) -> str:
         """
