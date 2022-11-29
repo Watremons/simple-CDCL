@@ -99,7 +99,7 @@ class SatSolver:
             self.literal_score_list = [0 for _ in range(variable_num*2 + 1)]
         elif self.decider == "MINISAT":
             self.variable_score_list = [0 for _ in range(variable_num + 1)]
-            self.phase = [0 for _ in range(variable_num + 1)]
+            self.phase = [False for _ in range(variable_num + 1)]
 
         #initial the _clauses_watched_by_l list:
         _clauses_watched_by_l=[]
@@ -128,10 +128,9 @@ class SatSolver:
 
                 # Record the score for specific decider
                 if self.decider == "VSIDS":
-                    self.literal_score_list[variable] += 1
+                    self.literal_score_list[literal] += 1
                 elif self.decider == "MINISAT":
-                    self.variable_score_list[literal] += 1
-                    self.phase = [False for _ in range(variable_num + 1)]
+                    self.variable_score_list[variable] += 1
 
             # 2- literal watching
             _literals_watching_c = []
@@ -397,7 +396,7 @@ class SatSolver:
         """
         if literal.variable in self.assignments:
             self.assignments[literal.variable] = value
-
+        '''
         #2 watching literal
         _0_literal=literal.variable
         _1_literal=literal.variable
@@ -451,7 +450,7 @@ class SatSolver:
         print(" 1文字",_1_literal,"监控的子句",self._clauses_watched_by_l[_1_literal])
         for index in self._clauses_watched_by_l[_1_literal]:
             print("  真子句,赋值",index)
-
+        '''
 
         self.update_clause_value()
 
@@ -547,22 +546,24 @@ class SatSolver:
             greatest_variable_element = self.decide_priority_queue.pop_front()
             if greatest_variable_element is not None:
                 decide_variable = greatest_variable_element.key
+                decide_value = self.phase[decide_variable]
                 decide_literal = Literal(
                     variable=decide_variable,
-                    sign=decide_sign,
+                    sign=decide_value,
                     literal=decide_variable
                 )
-                decide_sign = self.phase[decide_variable]
         elif self.decider == "ORDERED":
             # Sequential traversal the cnf to find an unassigned literal
-            for clause in self.cnf.clause_list:
-                for literal in clause.literal_list:
-                    value = self.get_value(literal)
-                    if value is None:
-                        if clause.value is None:
-                            return literal
-                        elif clause.value:
-                            decide_literal = literal
+            for variable in range(1, self.cnf.variable_num+1):
+                if self.assignments[variable] is None:
+                    decide_literal = Literal(
+                        variable=variable,
+                        sign=True,
+                        literal=variable
+                    )
+                    decide_value = True
+                    break
+
         return decide_literal, decide_value
 
     def unassigned_variable_exists(self):
@@ -645,7 +646,7 @@ class SatSolver:
 
 
 if __name__ == "__main__":
-    heuristic_decider = "VSIDS"  # ORDERED / VSIDS / MINISAT
+    heuristic_decider = "MINISAT"  # ORDERED / VSIDS / MINISAT
     solver = SatSolver(
         conflict_threshold=2,
         decider=heuristic_decider

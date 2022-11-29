@@ -233,7 +233,7 @@ class PriorityQueue:
             key: the key of target item
             value: the increase value of item
         """
-        for index in len(self.queue):
+        for index in range(len(self.queue)):
             if self.queue[index].key == key:
                 self.queue[index].value -= value
                 break
