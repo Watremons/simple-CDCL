@@ -34,8 +34,6 @@ class Literal:
         Method:
             Define the equal of two Literal instance
         """
-        # if object == None:
-        #     return False
         return self.literal == __o.literal
 
     def __hash__(self) -> bool:

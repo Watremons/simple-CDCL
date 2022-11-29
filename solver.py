@@ -160,7 +160,18 @@ class SatSolver:
         elif self.decider == "MINISAT":
             self.decide_priority_queue = PriorityQueue(self.variable_score_list)
             self.score_increment = 0.85
+        '''
+        #TODO 测试_clauses_watched_by_l 文字->监控的子句
+        for j in range(1,variable_num*2+1):
+            print(j,self._clauses_watched_by_l[j])
 
+        #TODO 测试 子句->监控子句的两个文字
+        for j in range(clause_num):
+            print(j,end=' ')
+            for i in self.cnf.clause_list[j]._literals_watching_c:
+                print(i.literal,end=' ')
+            print()
+        '''
         # print(self.literal_score_list)
         # print(self.decide_priority_queue)
         # Return the result
@@ -212,6 +223,13 @@ class SatSolver:
         Method:
             check if there is unit clause in cnf
         """
+        '''
+        for index in range(len(self.cnf.clause_list)):
+            if (len(self.cnf.clause_list[index]._literals_watching_c)==1):
+                return self.cnf.clause_list[index]._literals_watching_c[0],index
+        return None, None
+'''
+
         for index in range(len(self.cnf.clause_list)):
             clause = self.cnf.clause_list[index]
             if clause.value is not None and clause.value:
@@ -233,6 +251,7 @@ class SatSolver:
             if num_undefined == 1:
                 return undefined_literal, index
         return None, None
+
 
     def unit_propagate(self):
         """
@@ -262,6 +281,7 @@ class SatSolver:
                 self.phase[literal.variable] = literal.sign
             self.set_value(literal, literal.sign)
             self.append_node_to_current_level(literal, clause_index)
+            break
 
     def append_node_to_current_level(self, literal, reason):
         """
@@ -377,6 +397,62 @@ class SatSolver:
         """
         if literal.variable in self.assignments:
             self.assignments[literal.variable] = value
+
+        #2 watching literal
+        _0_literal=literal.variable
+        _1_literal=literal.variable
+        if value == False:
+            _1_literal = literal.variable+self.cnf.variable_num
+        elif value==True:
+            _0_literal = literal.variable+self.cnf.variable_num
+        print(literal.variable,value)
+        #监控的子句
+        print(" 0文字",_0_literal,"监控的子句",self._clauses_watched_by_l[_0_literal])
+        _0_list=list(self._clauses_watched_by_l[_0_literal])
+        for index in _0_list:
+            if self.cnf.clause_list[index].value==True:
+                #if the clause is already True, it need not be token attention
+                continue
+            print("  ",index,"监视的还未赋值的子句")
+            if len(self.cnf.clause_list[index]._literals_watching_c)!=1:
+
+                #if the clause is not unit clause, try to find another rational watching literal
+                new_watching_literal=None
+                for l in self.cnf.clause_list[index].literal_list:
+                    if l not in self.cnf.clause_list[index]._literals_watching_c and self.get_value(l) !=False:
+                        # set this literal as the new watching literal
+                        new_watching_literal=l
+                        break
+
+                if new_watching_literal is not None:
+                    print("   新的监视文字",new_watching_literal)
+                    # set the new_watching_literal as the new watching literal
+                    self.cnf.clause_list[index]._literals_watching_c.remove(literal)
+                    self.cnf.clause_list[index]._literals_watching_c.append(new_watching_literal)
+                    self._clauses_watched_by_l[_0_literal].remove(index)
+                    self._clauses_watched_by_l[new_watching_literal.literal].append(index)
+                else:
+                    #if there is no another rational watching literal, then check the other watching literal
+                    other_watching_literal=self.cnf.clause_list[index]._literals_watching_c[0]
+                    if other_watching_literal.literal == _0_literal:
+                        other_watching_literal=self.cnf.clause_list[index]._literals_watching_c[1]
+                    print("   另一个监视文字",other_watching_literal)
+                    if self.assignments[other_watching_literal.variable] == None:
+                        # TODO do unit propagate
+                        print("    单位字句，赋值",other_watching_literal)
+                    elif self.assignments[other_watching_literal.variable] == False:
+                        # TODO the clause will be a conflict clause
+                        print("    冲突子句",other_watching_literal,index)
+
+
+        #TODO
+        # update the 2 watches and the value of each clause watched by the contrary literal
+        # 1文字 监控的子句为真
+        print(" 1文字",_1_literal,"监控的子句",self._clauses_watched_by_l[_1_literal])
+        for index in self._clauses_watched_by_l[_1_literal]:
+            print("  真子句,赋值",index)
+
+
         self.update_clause_value()
 
     def backtrack(self, back_level: int) -> None:
@@ -487,7 +563,6 @@ class SatSolver:
                             return literal
                         elif clause.value:
                             decide_literal = literal
-
         return decide_literal, decide_value
 
     def unassigned_variable_exists(self):
@@ -517,7 +592,6 @@ class SatSolver:
         print(self.answer)
         if (self.answer == "SAT"):
             for i in range(1, cnf.variable_num+1):
-                # print( "{"+str(i)+":"+str(self.assignments[i])+"}",end=' ')
                 print(f'{i}:{self.assignments[i]}', end=' ')
             print()
         print(f'the number of restarts is {self.restart_num}')
@@ -547,6 +621,8 @@ class SatSolver:
                 new_clause, back_level = self.conflict_analyze()
                 self.cnf.clause_list.append(new_clause)
                 self.cnf.clause_num += 1
+                # set 2 watching literals for the new clause
+
                 # Count the number of conflicts and restart
                 self.conflict_num += 1
                 if self.conflict_num == self.conflict_threshold:
