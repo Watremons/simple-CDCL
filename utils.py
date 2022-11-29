@@ -48,7 +48,7 @@ def resolute_clause(conflict_clause: Clause, to_resolute_clause: Clause, variabl
     result_clause_literal_set.remove(Literal(variable, 1, variable))
     result_clause_literal_set.remove(Literal(variable, 0, variable + variable_num))
     # Return the clause
-    return Clause(literal_list=list(result_clause_literal_set))
+    return Clause(literal_list=list(result_clause_literal_set), _literals_watching_c=[])
 
 
 if __name__ == "__main__":
