@@ -2,6 +2,7 @@
 from models import Literal, Clause, Cnf, PriorityQueue
 from models import Node, Trail
 from utils import resolute_clause, to_literal, to_variable
+import queue
 
 
 class SatSolver:
@@ -190,6 +191,8 @@ class SatSolver:
         max_index_node = None
         for conflict_literal in conflict_clause.literal_list:
             conflict_variable = conflict_literal.variable
+            #print("冲突的文字",conflict_variable)
+            #print("现在的迹:" ,self.trail)
             variable_node = self.variable_to_node[conflict_variable]
             if variable_node.level == conflict_level:
                 count += 1
@@ -248,7 +251,7 @@ class SatSolver:
                 return undefined_literal, index
         return None, None
 
-    def unit_propagate(self):
+    def unit_propagate_1(self):
         """
         Method:
             do unit propagate
@@ -277,7 +280,37 @@ class SatSolver:
             #print("单位传播",literal, literal.sign)
             self.set_value(literal, literal.sign)
             self.append_node_to_current_level(literal, clause_index)
-            break
+
+    def unit_propagate(self,unit_clause):
+        unit_clause_queue=queue.Queue()
+        for i in unit_clause:
+            unit_clause_queue.put(i)
+        unit_clause = []
+        conflict_clause = -1
+        while (not unit_clause_queue.empty()):
+            literal, clause_index = unit_clause_queue.get()
+            if literal is None:
+                # there is no unit clause
+                break
+            if self.decider == "VSIDS":
+                self.decide_priority_queue.remove(literal.variable)
+                self.decide_priority_queue.remove(
+                    to_literal(
+                        variable=literal.variable,
+                        sign=False,
+                        variable_num=self.cnf.variable_num
+                    )
+                )
+                # print(self.literal_score_list)
+                # print(self.decide_priority_queue)
+            if self.decider == "MINISAT":
+                self.decide_priority_queue.remove(literal.variable)
+                self.phase[literal.variable] = literal.sign
+            # print("单位传播",literal, literal.sign)
+            unit_c= self.set_value(literal, literal.sign)
+            print(unit_c)
+            unit_clause.extend(unit_c)
+            self.append_node_to_current_level(literal, clause_index)
 
     def append_node_to_current_level(self, literal, reason):
         """
@@ -418,13 +451,14 @@ class SatSolver:
         elif value==True:
             _0_literal = literal.variable+self.cnf.variable_num
         #print(literal.variable,value)
-        #监控的子句
+        unit_clause = []
+        conflict_clause = -1
         #print(" 0文字",_0_literal,"监控的子句",self._clauses_watched_by_l[_0_literal])
         _0_list=list(self._clauses_watched_by_l[_0_literal])
         for index in _0_list:
             self.update_single_clause_value(index)
             if self.cnf.clause_list[index].value == True:
-                #print("不用考虑的真子句",index)
+                #print("  不用考虑的真子句",index)
                 #if the clause is already True, it need not be token attention
                 continue
             #print("  ",index,"监视的还未赋值的子句")
@@ -453,13 +487,13 @@ class SatSolver:
                         other_watching_literal=self.cnf.clause_list[index]._literals_watching_c[1]
                     #print("   另一个监视文字",other_watching_literal)
                     if self.assignments[other_watching_literal.variable] == None:
-                        # TODO do unit propagate
-                        pass
+                        # there will be a unit clause
+                        unit_clause.append((other_watching_literal,index))
                         #print("    单位字句，赋值",other_watching_literal)
                     elif self.assignments[other_watching_literal.variable] == False:
-                        # TODO the clause will be a conflict clause
+                        # there will be a conflict clause
                         pass
-                        #print("    冲突子句",other_watching_literal,index)
+
 
         #print(" 1文字",_1_literal,"监控的子句",self._clauses_watched_by_l[_1_literal])
         for index in self._clauses_watched_by_l[_1_literal]:
@@ -467,6 +501,8 @@ class SatSolver:
             self.cnf.clause_list[index].value=True
             #print("  真子句,赋值",index)
         self.update_clause_value()
+        #print(" 此次赋值得出的单位字句",unit_clause, "此次赋值得出的冲突字句",conflict_clause)
+        return unit_clause
 
     def backtrack(self, back_level: int) -> None:
         """
@@ -622,17 +658,15 @@ class SatSolver:
         self.node_index += 1
 
     def solve(self):
-
+        self.unit_propagate_1()
         while True:
-            # do BCP process
-            self.unit_propagate()
             # do "conflict analysis" process
             conflict_clause_num = self.detect_conflict_clause()
             if conflict_clause_num != -1:
                 if self.now_decision_level == 0:
                     self.answer = "unSAT"
                     return
-                # dd a conflict node to trail
+                # add a conflict node to trail
                 self.append_conflict_node_to_trail(conflict_clause_num)
                 new_clause, back_level = self.conflict_analyze()
                 self.cnf.clause_list.append(new_clause)
@@ -654,8 +688,9 @@ class SatSolver:
                 self.now_decision_level += 1
                 new_unassigned_literal, decide_value = self.decide()
                 if new_unassigned_literal:
-                    self.set_value(new_unassigned_literal, decide_value)
+                    unit_clause = self.set_value(new_unassigned_literal, decide_value)
                     self.append_node_to_current_level(new_unassigned_literal, None)
+            self.unit_propagate_1()
 
 
 if __name__ == "__main__":
@@ -664,7 +699,7 @@ if __name__ == "__main__":
         conflict_threshold=2,
         decider=heuristic_decider
     )
-    cnf = solver.cnf_parse("./raw/test2.cnf")
+    cnf = solver.cnf_parse("./raw/test7.cnf")
 
     raw_cnf = str(cnf)
     solver.solve()
