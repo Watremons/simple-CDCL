@@ -475,7 +475,7 @@ class SatSolver:
                     #print("   新的监视文字",new_watching_literal)
                     # set the new_watching_literal as the new watching literal
                     for l in self.cnf.clause_list[index]._literals_watching_c:
-                        if l.literal==literal.literal:
+                        if l.variable==literal.variable:
                             self.cnf.clause_list[index]._literals_watching_c.remove(l)
                     self.cnf.clause_list[index]._literals_watching_c.append(new_watching_literal)
                     self._clauses_watched_by_l[_0_literal].remove(index)
@@ -639,13 +639,12 @@ class SatSolver:
         Method:
             Print the result
         """
-        print(raw_cnf)
-        print(self.answer)
-        if (self.answer == "SAT"):
-            for i in range(1, cnf.variable_num+1):
-                print(f'{i}:{self.assignments[i]}', end=' ')
-            print()
-        print(f'the number of restarts is {self.restart_num}')
+        #print(raw_cnf)
+        print(self.answer,f'the number of restarts is {self.restart_num}')
+        #if (self.answer == "SAT"):
+        #   for i in range(1, cnf.variable_num+1):
+        #        print(f'{i}:{self.assignments[i]}', end=' ')
+        #    print()
 
     def append_conflict_node_to_trail(self, conflict_clause_num):
         """
@@ -691,16 +690,19 @@ class SatSolver:
                     unit_clause = self.set_value(new_unassigned_literal, decide_value)
                     self.append_node_to_current_level(new_unassigned_literal, None)
             self.unit_propagate_1()
+           # self.unit_propagate(unit_clause)
 
 
 if __name__ == "__main__":
-    heuristic_decider = "VSIDS"  # ORDERED / VSIDS / MINISAT
-    solver = SatSolver(
-        conflict_threshold=2,
-        decider=heuristic_decider
-    )
-    cnf = solver.cnf_parse("./raw/test7.cnf")
-
-    raw_cnf = str(cnf)
-    solver.solve()
-    solver.print_result(raw_cnf=raw_cnf)
+    heuristic_decider = ["ORDERED","VSIDS","MINISAT"]
+    conflict_threshold = 10
+    for i in range(3):
+        for j in ["./raw/test2.cnf","./raw/test7.cnf"]:
+            solver = SatSolver(
+                conflict_threshold=conflict_threshold,
+                decider=heuristic_decider[i]
+            )
+            cnf = solver.cnf_parse(j)
+            raw_cnf = str(cnf)
+            solver.solve()
+            solver.print_result(raw_cnf=raw_cnf)
