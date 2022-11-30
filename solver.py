@@ -160,19 +160,20 @@ class SatSolver:
         elif self.decider == "MINISAT":
             self.decide_priority_queue = PriorityQueue(self.variable_score_list)
             self.score_increment = 0.85
-        '''
+
+        return self.cnf
+
+    def test_print_2watcing(self):
         #TODO 测试_clauses_watched_by_l 文字->监控的子句
-        for j in range(1,variable_num*2+1):
+        for j in range(1,self.cnf.variable_num*2+1):
             print(j,self._clauses_watched_by_l[j])
 
         #TODO 测试 子句->监控子句的两个文字
-        for j in range(clause_num):
+        for j in range(self.cnf.clause_num):
             print(j,end=' ')
             for i in self.cnf.clause_list[j]._literals_watching_c:
                 print(i.literal,end=' ')
             print()
-        '''
-        return self.cnf
 
     def is_study_clause(self, conflict_clause: Clause, conflict_level: int) -> tuple[bool, Node]:
         """
@@ -272,26 +273,36 @@ class SatSolver:
                         variable_num=self.cnf.variable_num
                     )
                 )
-                # print(self.literal_score_list)
-                # print(self.decide_priority_queue)
             if self.decider == "MINISAT":
                 self.decide_priority_queue.remove(literal.variable)
                 self.phase[literal.variable] = literal.sign
-            #print("单位传播",literal, literal.sign)
             self.set_value(literal, literal.sign)
             self.append_node_to_current_level(literal, clause_index)
 
-    def unit_propagate(self,unit_clause):
-        unit_clause_queue=queue.Queue()
-        for i in unit_clause:
-            unit_clause_queue.put(i)
-        unit_clause = []
-        conflict_clause = -1
-        while (not unit_clause_queue.empty()):
-            literal, clause_index = unit_clause_queue.get()
+    def unit_propagate(self, unit_clause):
+        #print("单位传播:", end=' ')
+        literal = None
+
+        dic = {}
+        for i in range(self.cnf.variable_num + 1):
+            dic[i] = -1
+
+        i = 0
+        while (i < len(unit_clause)):
+            if dic[unit_clause[i][0].variable] == 1:
+                unit_clause.remove(unit_clause[i])
+            else:
+                dic[unit_clause[i][0].variable] = 1
+                i += 1
+
+        #while True:
+        #    literal, clause_index = self.find_unit_clause()
+        for item in unit_clause:
+            literal, clause_index = item
             if literal is None:
                 # there is no unit clause
                 break
+            #print("文字", literal, "子句", clause_index, end=', ')
             if self.decider == "VSIDS":
                 self.decide_priority_queue.remove(literal.variable)
                 self.decide_priority_queue.remove(
@@ -306,17 +317,26 @@ class SatSolver:
             if self.decider == "MINISAT":
                 self.decide_priority_queue.remove(literal.variable)
                 self.phase[literal.variable] = literal.sign
-            # print("单位传播",literal, literal.sign)
-            unit_c= self.set_value(literal, literal.sign)
-            print(unit_c)
-            unit_clause.extend(unit_c)
+            unit_c = self.set_value(literal, literal.sign)
+
+            for i in unit_c:
+                if dic[i[0].variable] == -1:
+                    unit_clause.append(i)
+                    dic[i[0].variable] = 1
             self.append_node_to_current_level(literal, clause_index)
+        #print()
+        #print("一一比较:", end=' ')
+        #for i in unit_clause:
+            #print("文字", i[0], "子句", i[1], end=', ')
+
+        #print()
 
     def append_node_to_current_level(self, literal, reason):
         """
         Method:
             Append new node to trail
         """
+        #print("加入迹",literal.variable,self.now_decision_level)
         node = Node(variable=literal.variable, value=self.assignments[literal.variable], reason=reason, level=self.now_decision_level, index=self.node_index)
         self.trail.node_list.append(node)
         self.variable_to_node[literal.variable] = node
@@ -441,6 +461,7 @@ class SatSolver:
         Method:
             Set the value of literal and update the value of clause
         """
+        #print("set_value",literal.variable,value,"决策层",self.now_decision_level)
         if literal.variable in self.assignments:
             self.assignments[literal.variable] = value
         #2 watching literal
@@ -486,21 +507,19 @@ class SatSolver:
                     if other_watching_literal.literal == _0_literal:
                         other_watching_literal=self.cnf.clause_list[index]._literals_watching_c[1]
                     #print("   另一个监视文字",other_watching_literal)
-                    if self.assignments[other_watching_literal.variable] == None:
+                    if self.assignments[other_watching_literal.variable] is None:
                         # there will be a unit clause
                         unit_clause.append((other_watching_literal,index))
                         #print("    单位字句，赋值",other_watching_literal)
                     elif self.assignments[other_watching_literal.variable] == False:
                         # there will be a conflict clause
                         pass
-
-
         #print(" 1文字",_1_literal,"监控的子句",self._clauses_watched_by_l[_1_literal])
         for index in self._clauses_watched_by_l[_1_literal]:
             # set the clause as True for the clause watched by the contrary literal
             self.cnf.clause_list[index].value=True
             #print("  真子句,赋值",index)
-        self.update_clause_value()
+        #self.update_clause_value()
         #print(" 此次赋值得出的单位字句",unit_clause, "此次赋值得出的冲突字句",conflict_clause)
         return unit_clause
 
@@ -522,12 +541,14 @@ class SatSolver:
                 break
             last_node = self.trail.node_list.pop()
             if last_node.level <= back_level:
+                self.trail.node_list.append(last_node)
                 # break if no node remain, whose level is greater than back level
                 break
             else:
                 if last_node.variable is not None:
                     self.variable_to_node.pop(last_node.variable)
                     self.clear_value_of_variable(last_node.variable)
+                    #print("清除值",last_node.variable)
                     # Restore the item remove from priority queue
                     if self.decider == "VSIDS":
                         positive_literal = to_literal(variable=last_node.variable, sign=True, variable_num=self.cnf.variable_num)
@@ -659,6 +680,8 @@ class SatSolver:
     def solve(self):
         self.unit_propagate_1()
         while True:
+            #self.test_print_2watcing()
+            unit_clause = []
             # do "conflict analysis" process
             conflict_clause_num = self.detect_conflict_clause()
             if conflict_clause_num != -1:
@@ -668,6 +691,7 @@ class SatSolver:
                 # add a conflict node to trail
                 self.append_conflict_node_to_trail(conflict_clause_num)
                 new_clause, back_level = self.conflict_analyze()
+                #print("冲突子句",new_clause,"回溯层",back_level)
                 self.cnf.clause_list.append(new_clause)
                 self.cnf.clause_num += 1
                 # Count the number of conflicts and restart
@@ -679,23 +703,30 @@ class SatSolver:
                     back_level = 0
                 # do BACKTRACK process
                 self.backtrack(back_level)
+                self.unit_propagate_1()
             else:
                 if not self.unassigned_variable_exists():
                     self.answer = "SAT"
                     return
                 # do DECIDE process
                 self.now_decision_level += 1
+                #print("decide元素",end='')
                 new_unassigned_literal, decide_value = self.decide()
                 if new_unassigned_literal:
                     unit_clause = self.set_value(new_unassigned_literal, decide_value)
+                    #print("set返回",end=':')
+                    #for item in unit_clause:
+                        #print("文字",item[0].variable,"子句",item[1],end=',')
+                    #print()
                     self.append_node_to_current_level(new_unassigned_literal, None)
-            self.unit_propagate_1()
-           # self.unit_propagate(unit_clause)
+                self.unit_propagate(unit_clause)
+                #self.unit_propagate(unit_clause)
 
 
 if __name__ == "__main__":
     heuristic_decider = ["ORDERED","VSIDS","MINISAT"]
     conflict_threshold = 9
+
     for i in range(3):
         for j in ["./raw/test2.cnf","./raw/test7.cnf"]:
             solver = SatSolver(
@@ -706,3 +737,4 @@ if __name__ == "__main__":
             raw_cnf = str(cnf)
             solver.solve()
             solver.print_result(raw_cnf=raw_cnf)
+            #print()
