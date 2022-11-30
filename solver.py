@@ -695,7 +695,7 @@ class SatSolver:
 
 if __name__ == "__main__":
     heuristic_decider = ["ORDERED","VSIDS","MINISAT"]
-    conflict_threshold = 10
+    conflict_threshold = 9
     for i in range(3):
         for j in ["./raw/test2.cnf","./raw/test7.cnf"]:
             solver = SatSolver(
