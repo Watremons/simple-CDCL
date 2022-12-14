@@ -1,0 +1,21 @@
+STATISTIC RESULT
+-------------FILE INFO-------------
+Input File: test3
+Output File: result_test3.txt
+Statistic File: result_test3_stat.txt
+
+-------------SOLVER INFO-------------
+Result: SAT
+Total literal: 3
+Raw clause: 3 	Study clause: 0 	Total clause: 3
+Max Decision Level(Final decision num): 2
+Restart times: 0
+
+-------------TIME INFO-------------
+Started at: 1670999663.206195 	Finished at: 1670999663.206195
+Total time: 0.0
+File read time: 0.0
+BCP time: 0.0
+DECIDE time: 0.0
+CONFLICT ANALYZE time: 0.0
+BACKTRACK time: 0

@@ -1,0 +1,21 @@
+STATISTIC RESULT
+-------------FILE INFO-------------
+Input File: test5
+Output File: result_test5.txt
+Statistic File: result_test5_stat.txt
+
+-------------SOLVER INFO-------------
+Result: SAT
+Total literal: 9
+Raw clause: 7 	Study clause: 0 	Total clause: 7
+Max Decision Level(Final decision num): 9
+Restart times: 0
+
+-------------TIME INFO-------------
+Started at: 1670999663.209196 	Finished at: 1670999663.209196
+Total time: 0.0
+File read time: 0.0
+BCP time: 0.0
+DECIDE time: 0.0
+CONFLICT ANALYZE time: 0.0
+BACKTRACK time: 0

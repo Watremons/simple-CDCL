@@ -1,0 +1,21 @@
+STATISTIC RESULT
+-------------FILE INFO-------------
+Input File: test8
+Output File: result_test8.txt
+Statistic File: result_test8_stat.txt
+
+-------------SOLVER INFO-------------
+Result: SAT
+Total literal: 50
+Raw clause: 141 	Study clause: 0 	Total clause: 141
+Max Decision Level(Final decision num): 15
+Restart times: 0
+
+-------------TIME INFO-------------
+Started at: 1670999663.2114682 	Finished at: 1670999663.2134688
+Total time: 0.002000570297241211
+File read time: 0.0010008811950683594
+BCP time: 0.0
+DECIDE time: 0.0
+CONFLICT ANALYZE time: 0.0
+BACKTRACK time: 0

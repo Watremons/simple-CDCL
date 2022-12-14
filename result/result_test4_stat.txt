@@ -1,0 +1,21 @@
+STATISTIC RESULT
+-------------FILE INFO-------------
+Input File: test4
+Output File: result_test4.txt
+Statistic File: result_test4_stat.txt
+
+-------------SOLVER INFO-------------
+Result: SAT
+Total literal: 3
+Raw clause: 2 	Study clause: 0 	Total clause: 2
+Max Decision Level(Final decision num): 2
+Restart times: 0
+
+-------------TIME INFO-------------
+Started at: 1670999663.207196 	Finished at: 1670999663.2081964
+Total time: 0.0010004043579101562
+File read time: 0.0010004043579101562
+BCP time: 0.0
+DECIDE time: 0.0
+CONFLICT ANALYZE time: 0.0
+BACKTRACK time: 0
