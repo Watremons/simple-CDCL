@@ -1,8 +1,9 @@
 # Customized lib
-from models import Literal, Clause, Cnf, PriorityQueue
+import time
+from models import Literal, Clause, Cnf, PriorityQueue, Statistics
 from models import Node, Trail
 from utils import resolute_clause, to_literal, to_variable
-import queue
+import os
 
 
 class SatSolver:
@@ -23,7 +24,6 @@ class SatSolver:
         Method:
             Constructed Function
         """
-        self.node_index = 0
         self.trail = Trail(node_list=[])
         self.variable_to_node = dict()
         self.assignments = dict()
@@ -60,6 +60,9 @@ class SatSolver:
         # Use assignments to record the variable to assigned node
         self.assignments = dict()
         self.answer = None
+        # Statistics
+        self.stat = Statistics()
+        self.stat.start_timestamp = time.time()
 
     def cnf_parse(self, file_path: str) -> Cnf:
         """
@@ -71,6 +74,9 @@ class SatSolver:
             cnf: the cnf extracted from .cnf file
         """
         file_content = []
+        self.stat.input_file_name = os.path.splitext(os.path.basename(file_path))[0]
+        self.stat.output_file_name = "result_{}.txt".format(self.stat.input_file_name)
+        self.stat.output_stat_file_name = "result_{}_stat.txt".format(self.stat.input_file_name)
         with open(file_path) as f:
             while True:
                 line = f.readline()
@@ -95,6 +101,9 @@ class SatSolver:
         ), "InputError: The lines of context <int:{file_content}> is not equal to clause <int:{clause_num}>".format(
             file_content=len(file_content), clause_num=clause_num)
 
+        # Init the statistics
+        self.stat.variable_num = variable_num
+        self.stat.clause_num = clause_num
         # Init the score used in decider
         if self.decider == "VSIDS":
             self.literal_score_list = [0 for _ in range(variable_num*2 + 1)]
@@ -161,6 +170,8 @@ class SatSolver:
             self.decide_priority_queue = PriorityQueue(self.variable_score_list)
             self.score_increment = 0.85
 
+        # record the time taken by reading input file
+        self.stat.file_read_time = time.time() - self.stat.start_timestamp
         return self.cnf
 
     def is_study_clause(self, conflict_clause: Clause, conflict_level: int) -> tuple[bool, Node]:
@@ -189,7 +200,7 @@ class SatSolver:
                     max_index = variable_node.index
                     max_index_node = variable_node
 
-        return count == 1, max_index_node
+        return count, max_index_node
 
     def get_value(self, literal):
         """
@@ -245,6 +256,9 @@ class SatSolver:
         Method:
             do unit propagate
         """
+        # Time record
+        bcp_start_timestamp = time.time()
+
         # the literal used to do unit propagate
         literal = None
         while True:
@@ -267,11 +281,15 @@ class SatSolver:
             self.set_value(literal, literal.sign)
             self.append_node_to_current_level(literal, clause_index)
 
+            self.stat.bcp_time += (time.time() - bcp_start_timestamp)
+
     def unit_propagate(self, unit_clause):
         """
         Method:
             do unit propagate after decide with 2-watching literal
         """
+        # Time record
+        bcp_start_timestamp = time.time()
         literal = None
 
         dic = {}
@@ -311,15 +329,16 @@ class SatSolver:
                     dic[i[0].variable] = 1
             self.append_node_to_current_level(literal, clause_index)
 
+        self.stat.bcp_time += (time.time() - bcp_start_timestamp)
+
     def append_node_to_current_level(self, literal, reason):
         """
         Method:
             Append new node to trail
         """
-        node = Node(variable=literal.variable, value=self.assignments[literal.variable], reason=reason, level=self.now_decision_level, index=self.node_index)
+        node = Node(variable=literal.variable, value=self.assignments[literal.variable], reason=reason, level=self.now_decision_level, index=len(self.trail.node_list))
         self.trail.node_list.append(node)
         self.variable_to_node[literal.variable] = node
-        self.node_index += 1
 
     def update_clause_value(self):  # 更新子句的值
         """
@@ -343,8 +362,9 @@ class SatSolver:
         """
         # Do with self.cnf
         # 1.Get conflict node at the end of trail
+        print("\nStart a new conflict analyze")
         last_decision_level = self.now_decision_level
-        conflict_node = self.trail.node_list[-1]
+        conflict_node = self.trail.node_list.pop()
         assert conflict_node.reason is not None, "Error: Can't get the conflict clause at the end of trail"
 
         # reason_literal_list = []
@@ -358,7 +378,7 @@ class SatSolver:
         # if not, use the clause at conflict level to resolute excess literals
         while True:
             flag, latest_conflict_level_node = self.is_study_clause(conflict_clause, last_decision_level)
-            if flag:
+            if flag == 1:
                 break
             to_resolute_clause = self.cnf.clause_list[latest_conflict_level_node.reason]
 
@@ -497,6 +517,7 @@ class SatSolver:
         Params:
             back_level: the decision level that the solver need to backtrack to
         """
+        backtrack_start_timestamp = time.time()
         self.now_decision_level = back_level
         while True:
             if len(self.trail.node_list) == 0:
@@ -530,6 +551,7 @@ class SatSolver:
                         )
                 del last_node
         self.update_clause_value()
+        self.stat.backtrack_time += (time.time() - backtrack_start_timestamp)
 
     def clear_value_of_variable(self, variable):
         """
@@ -624,7 +646,7 @@ class SatSolver:
             for i in range(1, cnf.variable_num+1):
                 print(f'{i}:{self.assignments[i]}', end=' ')
             print()
-        print(f'the number of restarts is {self.restart_num}')
+        print(f'the number of restarts is {self.restart_num}\n')
 
     def append_conflict_node_to_trail(self, conflict_clause_num):
         """
@@ -632,22 +654,28 @@ class SatSolver:
             Append a conflict node to trail
         """
         node = Node(variable=None, value=True, reason=conflict_clause_num,
-                    level=self.now_decision_level, index=self.node_index)
+                    level=self.now_decision_level, index=len(self.trail.node_list))
         self.trail.node_list.append(node)
-        self.node_index += 1
 
     def solve(self):
+        """
+        Method:
+            the main function for SAT solution
+        """
         self.unit_propagate_1()
         while True:
             unit_clause = []
             # do "conflict analysis" process
+            conflict_start_timestamp = time.time()
             conflict_clause_num = self.detect_conflict_clause()
             if conflict_clause_num != -1:
                 if self.now_decision_level == 0:
                     self.answer = "unSAT"
+                    self.stat.finish_timestamp = time.time()
                     return
                 # add a conflict node to trail
                 self.append_conflict_node_to_trail(conflict_clause_num)
+                # print("Do conflict analyze")
                 new_clause, back_level = self.conflict_analyze()
                 self.cnf.clause_list.append(new_clause)
                 self.cnf.clause_num += 1
@@ -658,33 +686,49 @@ class SatSolver:
                     self.conflict_num = 0
                     self.restart_num += 1
                     back_level = 0
+
+                self.stat.conflict_analyze_time += (time.time() - conflict_start_timestamp)
                 # do BACKTRACK process
                 self.backtrack(back_level)
                 self.unit_propagate_1()
             else:
+                self.stat.conflict_analyze_time += (time.time() - conflict_start_timestamp)
                 if not self.unassigned_variable_exists():
                     self.answer = "SAT"
+                    self.stat.finish_timestamp = time.time()
                     return
                 # do DECIDE process
+                decide_start_timestamp = time.time()
                 self.now_decision_level += 1
+                if self.stat.max_decision_level < self.now_decision_level:
+                    self.stat.max_decision_level = self.now_decision_level
                 new_unassigned_literal, decide_value = self.decide()
                 if new_unassigned_literal:
                     unit_clause = self.set_value(new_unassigned_literal, decide_value)
                     self.append_node_to_current_level(new_unassigned_literal, None)
+                self.stat.decide_time += (time.time() - decide_start_timestamp)
                 self.unit_propagate(unit_clause)
 
 
 if __name__ == "__main__":
-    heuristic_decider = ["ORDERED","VSIDS","MINISAT"]
-    conflict_threshold = 9
-
-    for i in range(3):
-        for j in ["./raw/test2.cnf","./raw/test7.cnf"]:
+    heuristic_decider = ["ORDERED", "VSIDS", "MINISAT"]
+    conflict_threshold = 99999999999999999
+    base_path = os.path.abspath('.')
+    for i in range(1, 2):
+        print("Decider: ", heuristic_decider[i])
+        for j in ["bmc-2.cnf"]:
             solver = SatSolver(
                 conflict_threshold=conflict_threshold,
                 decider=heuristic_decider[i]
             )
-            cnf = solver.cnf_parse(j)
+            cnf = solver.cnf_parse(os.path.join(base_path, "raw", j))
             raw_cnf = str(cnf)
             solver.solve()
+            solver.stat.restart_times = solver.restart_num
+            solver.stat.solver_result = solver.answer
+            solver.stat.study_clause_num = len(solver.cnf.clause_list) - solver.stat.clause_num
             solver.print_result(raw_cnf=raw_cnf)
+            statistic_str = solver.stat.generate_stat_result()
+            stat_path = os.path.join(base_path, "result", solver.stat.output_stat_file_name)
+            with open(file=stat_path, mode="w", encoding="utf-8") as f:
+                f.write(statistic_str)
