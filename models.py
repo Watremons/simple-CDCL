@@ -1,3 +1,4 @@
+import time
 from typing import Union
 import heapq
 
@@ -27,7 +28,7 @@ class Literal:
         Method:
             Formatted print string
         """
-        return str(self.variable) if self.sign else '-{0}'.format(self.variable)
+        return str(self.variable) if self.sign == 1 else '-{0}'.format(self.variable)
 
     def __eq__(self, __o: object) -> bool:
         """
@@ -60,7 +61,7 @@ class Clause:
         """
         self.literal_list = literal_list
         self.value = None
-        #2- literal watching for this clause
+        # 2- literal watching for this clause
         self._literals_watching_c = _literals_watching_c
 
     def __str__(self) -> str:
@@ -272,6 +273,91 @@ class PriorityQueue:
         return description
 
 
+class Statistics:
+    """
+    Class:
+        A class which used for record the statistic data in SAT Solver
+    Attributes:
+        input_file_name: the file name of the input cnf file
+        output_file_name: the file name of the output result file
+        output_stat_file_name: the file name of the statistic data file
+        solver_result: the result of SAT problem for the input(SAT or UNSAT)
+        literal_num: the literal num of input cnf
+        clause_num: the clause num of input cnf
+        study_clause_num: the clause num from the conflict study
+        final_clause_num: the clause num after the conflict study at the end
+        max_decision_level: the max level of decision level during the sat solve
+        start_timestamp: the timestamp of the beginning
+        finish_timestamp: the timestamp of the end
+
+        file_read_time: time taken by reading file
+        bcp_time: time taken by bcp process
+        decide_time: time taken by decide process
+        conflict_analyze_time: time taken by conflict analyze and clause study
+        backtrack_time: time taken by backtrack
+
+        restart_times: total restart times
+
+    """
+    def __init__(self) -> None:
+        """
+        Method:
+            Constructed Method
+        """
+        self.input_file_name = ""
+        self.output_file_name = ""
+        self.output_stat_file_name = ""
+
+        self.solver_result = ""
+        self.variable_num = 0
+        self.clause_num = 0
+        self.study_clause_num = 0
+        self.max_decision_level = 0
+        self.restart_times = 0
+
+        self.start_timestamp = 0
+        self.finish_timestamp = 0
+
+        self.file_read_time = 0
+        self.bcp_time = 0
+        self.decide_time = 0
+        self.conflict_analyze_time = 0
+        self.backtrack_time = 0
+
+    def generate_stat_result(self) -> str:
+        """
+        Method:
+            Return the statistic result as string
+        """
+        result = ""
+        result += "STATISTIC RESULT\n"
+        result += "-------------FILE INFO-------------\n"
+        result += "Input File: {}\n".format(self.input_file_name)
+        result += "Output File: {}\n".format(self.output_file_name)
+        result += "Statistic File: {}\n".format(self.output_stat_file_name)
+        result += "\n"
+        result += "-------------SOLVER INFO-------------\n"
+        result += "Result: {}\n".format(self.solver_result)
+        result += "Total literal: {}\n".format(self.variable_num)
+        result += "Raw clause: {} \tStudy clause: {} \tTotal clause: {}\n".format(
+            self.clause_num,
+            self.study_clause_num,
+            self.clause_num + self.study_clause_num
+        )
+        result += "Max Decision Level(Final decision num): {}\n".format(self.max_decision_level)
+        result += "Restart times: {}\n".format(self.restart_times)
+        result += "\n"
+        result += "-------------TIME INFO-------------\n"
+        result += "Started at: {} \tFinished at: {}\n".format(self.start_timestamp, self.finish_timestamp)
+        result += "Total time: {}\n".format(self.finish_timestamp - self.start_timestamp)
+        result += "File read time: {}\n".format(self.file_read_time)
+        result += "BCP time: {}\n".format(self.bcp_time)
+        result += "DECIDE time: {}\n".format(self.decide_time)
+        result += "CONFLICT ANALYZE time: {}\n".format(self.conflict_analyze_time)
+        result += "BACKTRACK time: {}\n".format(self.backtrack_time)
+        return result
+
+
 if __name__ == "__main__":
-    value = None
-    print(not value)
+    nowtime = time.time()
+    print(nowtime)
