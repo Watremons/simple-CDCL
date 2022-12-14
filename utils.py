@@ -1,7 +1,6 @@
 
 from models import Clause, Literal
 
-
 def to_variable(literal: int, variable_num: int) -> tuple[int, int]:
     """
     Method:
@@ -42,11 +41,14 @@ def resolute_clause(conflict_clause: Clause, to_resolute_clause: Clause, variabl
     Return:
         the result clause
     """
+    print("variable", variable)
+    print("conflict_clause", conflict_clause)
+    print("to_resolute_clause", to_resolute_clause)
     # merge two clause and remove duplicates
     result_clause_literal_set = set(conflict_clause.literal_list + to_resolute_clause.literal_list)
     # Delete the target variable
-    result_clause_literal_set.remove(Literal(variable, 1, variable))
-    result_clause_literal_set.remove(Literal(variable, 0, variable + variable_num))
+    result_clause_literal_set.discard(Literal(variable, 1, variable))
+    result_clause_literal_set.discard(Literal(variable, 0, variable + variable_num))
     # Return the clause
     return Clause(literal_list=list(result_clause_literal_set), _literals_watching_c=[])
 
@@ -60,15 +62,18 @@ if __name__ == "__main__":
         Literal(5, 1, 5)
     ]
     list2 = [
-        Literal(2, 1, 2),
+        Literal(2, 0, 8),
         Literal(3, 1, 3),
         Literal(4, 1, 4),
         Literal(5, 1, 5),
         Literal(6, 1, 6)
     ]
-    all_set = set(list1+list2)
+    all_set = list1+list2
+    # full_set = list(OrderedDict.fromkeys(all_set))
+    full_set = set(all_set)
+    print("all_set")
     for literal in all_set:
         print(literal)
-    all_set.remove(Literal(2, 1, 2))
-    for literal in all_set:
+    print("full_set")
+    for literal in full_set:
         print(literal)
