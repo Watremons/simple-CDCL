@@ -1,0 +1,21 @@
+STATISTIC RESULT
+-------------FILE INFO-------------
+Input File: bmc-2
+Output File: result_bmc-2.txt
+Statistic File: result_bmc-2_stat.txt
+
+-------------SOLVER INFO-------------
+Result: SAT
+Total literal: 2810
+Raw clause: 11683 	Study clause: 87 	Total clause: 11770
+Max Decision Level(Final decision num): 66
+Restart times: 0
+
+-------------TIME INFO-------------
+Started at: 1671011190.331139 	Finished at: 1671011244.2965994
+Total time: 53.96546030044556
+File read time: 0.13065838813781738
+BCP time: 36108.2034239769
+DECIDE time: 0.06401705741882324
+CONFLICT ANALYZE time: 1.6314060688018799
+BACKTRACK time: 4.678025960922241
