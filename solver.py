@@ -622,7 +622,7 @@ class SatSolver:
         Method:
             Check if there is still unassigned variable existing
         """
-        for i in range(1, cnf.variable_num+1):
+        for i in range(1, self.cnf.variable_num+1):
             if self.assignments[i] is None:
                 return True
         return False
@@ -643,7 +643,7 @@ class SatSolver:
         print(raw_cnf)
         print(self.answer)
         if (self.answer == "SAT"):
-            for i in range(1, cnf.variable_num+1):
+            for i in range(1, self.cnf.variable_num+1):
                 print(f'{i}:{self.assignments[i]}', end=' ')
             print()
         print(f'the number of restarts is {self.restart_num}\n')
