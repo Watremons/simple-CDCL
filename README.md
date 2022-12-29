@@ -13,7 +13,7 @@ Python >= 3.9
 ### 0.2 How to run
 
 ```
-python solver.py
+python main.py --decider=ORDERED --threshold=10000 --input_file=test2.cnf
 ```
 
 Modify the file_path in solver.py to run the code by the specified .cnf input file
