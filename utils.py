@@ -41,9 +41,9 @@ def resolute_clause(conflict_clause: Clause, to_resolute_clause: Clause, variabl
     Return:
         the result clause
     """
-    print("variable", variable)
-    print("conflict_clause", conflict_clause)
-    print("to_resolute_clause", to_resolute_clause)
+    # print("variable", variable)
+    # print("conflict_clause", conflict_clause)
+    # print("to_resolute_clause", to_resolute_clause)
     # merge two clause and remove duplicates
     result_clause_literal_set = set(conflict_clause.literal_list + to_resolute_clause.literal_list)
     # Delete the target variable
